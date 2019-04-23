@@ -1,0 +1,69 @@
+
+$ kubectl version  --> see the version
+$ kubectl config current-context --> to see the cluster info
+$ kubectl cluster-info  --> To see the cluster details
+$ kubectl get ns   --> Get k8 namespace
+$ kubectl get namespaces
+$ kubectl get namespace/kube-system -o json --> Show the particular namespace in json format
+$ kubectl get ns kube-system -o json  --> Show the particular namespace in json format
+$ kubectl get cs --> show the controller and scheduler status
+$ kubectl delete namespace cattle-system  --> delete namespace
+$ kubectl describe namespace <Namespace name>
+$ kubectl get pods --namespace kube-system  --> get pod details 
+$ kubectl get services -->  to verify that a new service has been deployed on the cluster
+$ kubectl delete pods --all
+$ kubectl delete --all namespaces
+$ kubectl describe svc prometheus
+$ kubectl get nodes | egrep '(^NAME|NotReady)' --> 
+$ kubectl delete pods <pod> --grace-period=0 --force  --> delete a Pod forcibly
+$ kubectl delete node --all  --> delete all nodes
+$ helm ls --> see the helm repo list
+$ helm repo update --> helm repo update
+$ helm install stable/mysql  --> install package through helm 
+$ helm create sprinboot --> ceate helm chat
+$ helm package sprinboot --> for chat packageing 
+
+
+
+++++++++++++++Steps to create namespace++++++
+$ vi cattle-system.yaml and add below lines
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cattle-system
+$ kubectl create -f ./cattle-system.yaml
+or
+$ kubectl create namespace cattle-system
+++++++++++++++++++++++++++++++++
+
+
+++++++++Creting Pod++++++++++
+$ kubectl run tomcat --image = tomcat:8.0
+or 
+$ vi tomcat.yml  --> create yml find and add below point
+apiVersion: v1
+kind: Pod
+metadata:
+   name: Tomcat
+spec:
+   containers:
+   - name: Tomcat
+      image: tomcat: 8.0
+      ports:
+containerPort: 7500
+   imagePullPolicy: Always
+$ kubectl create –f tomcat.yml
+++++++++++++++++++++++++++++++++
+
+++++++++Enable auto scaling +++++++++++++++++
+gcloud container clusters update rancher2-1 --enable-autoscaling --min-nodes=1 --max-nodes=2
+
++++++++++Stop/start+++++++++
+$ kubectl drain  --> terminate all pods on the node
+$ kubectl drain <nodename>
+$kubectl uncordon <nodename>
+
+
+++++++++++++Manual Install Promithious++++++++++++
+
+

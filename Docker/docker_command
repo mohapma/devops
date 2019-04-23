@@ -1,0 +1,37 @@
+docker container ls -a  --> list all container
+docker container stop $(docker container ls -aq)  --> stop all running container
+docker container rm  c011dc6914b6 6ff46a80324a  --> delete container name wise
+docker container rm $(docker container ls -aq)  --> delete container
+docker exec -it container_name /bin/bash --> go to inside container
+docker  logs --details f43b2c842315
+docker info 2>/dev/null --> 
+docker inspect --> findout the log path
+docker create --volumes-from <RANCHER_CONTAINER_NAME> --name rancher-data rancher/rancher:<RANCHER_CONTAINER_TAG>
+
+++++++docker's default /var/lib/docker to another directory++++++
++++++++++++++++++++++++++++++++++++++++++++
+vi /lib/systemd/system/docker.service
+FROM:
+ExecStart=/usr/bin/docker daemon -H fd://
+TO:
+ExecStart=/usr/bin/docker daemon -g /new/path/docker -H fd://
+$ systemctl stop docker
+
+first need to mount the volume for docker=======
+$ mount -t  /dev/sda3 /var/lib/docker/overlay2 -t overlay
+
+
+Command to extend the lvm parition for docker++++++++
+++++++++++++++++++++++++
+sudo lvextend -l +8000 /dev/ubuntu-vg/ubuntu-lv
+sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
+
+sudo /etc/init.d/docker restart   --> restart docker service
+or
+sudo service docker stop/start
+
+docker container start 2e439fce6910
+
+kubectl describe svc prometheus
+kubectl get pods --namespace=prometheus-wpghr
+kubectl port-forward prometheus-wpghr-server-6bfdbc7bb7-6x7js 8080:9090 -n prometheus-wpghr
