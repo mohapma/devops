@@ -1,0 +1,73 @@
+## refer https://wiki.tecnotree.com/confluence/display/DEVOPS/DevOps+-+Jenkins#DevOps-Jenkins-BuildNodes
+##  to run dockerfile build on a barebone (Photon OS) server
+host IP: 192.168.32.80 
+Login root/tecnotree
+
+## AngularJS node UI build
+docker run -d --privileged --name angularjs-ui  dev-docker-registry.tecnotree.com/common/jenkins-node-angularjs:nodejs-8-u1 /usr/sbin/sshd -D
+
+## Java, maven node
+docker run -d --privileged --name jenkins-node-java dev-docker-registry.tecnotree.com/common/jenkins-node-java:jdk-8-dind /usr/sbin/sshd -D
+docker exec -it jenkins-node-java /bin/bash
+su - jenkins
+
+
+####################################
+### Docker in docker angularjs-node4-node
+docker run -d --privileged --name alex-angularnode dev-docker-registry.tecnotree.com/common/jenkins-node-angularjs:nodejs-4.7 /usr/sbin/sshd -D
+docker run -d --privileged --name alex-dockernode dev-docker-registry.tecnotree.com/common/jenkins-node-docker:docker-18 /usr/sbin/sshd -D
+
+docker exec -it alex-dockernode /bin/bash
+su - jenkins
+git clone https://git.tecnotree.com/pdcp/pdclmui-reg.git
+cd pdclmui-reg
+	git config --global url."https://github.com/".insteadOf git@github.com
+	git config --global url."https://git.tecnotree.com/tec_common".insteadOf git@git.tecnotree.com:tec_common
+	cd clm-web-ui && export PHANTOMJS_BIN=/opt/phantomjs/bin/phantomjs && chmod 755 scripts/buildui.sh && scripts/buildui.sh
+	## NEED TO ENTER KEY WHEN STUCK !! 
+	
+	cp clm-web-ui/app/navigation-apps.json clm-web-ui/dist/
+	chmod 755 download_nexus.sh && ./download_nexus.sh
+			
+#### jenkins-node-angularjs:nodejs-8-u1 
+docker run -d --privileged --name angular-nodejs8 dev-docker-registry.tecnotree.com/common/jenkins-node-angularjs:nodejs-8-u1 /usr/sbin/sshd -D
+
+## nodejs-8.11-dind
+docker run -d --privileged --name nodejs-8.11-dind dev-docker-registry.tecnotree.com/common/jenkins-node-nodejs:nodejs-8.11-dind usr/sbin/sshd -D
+## nodejs-10.15.1-dind_0
+docker run -d --privileged --name nodejs10 dev-docker-registry.tecnotree.com/common/jenkins-node-nodejs:nodejs-10.15.1-dind_0
+
+
+## docker-node
+docker run -d --privileged --name jenkins-node-docker dev-docker-registry.tecnotree.com/common/jenkins-node-docker:dind-18.09.2_0
+
+#### to build jenkins-node-scala
+docker run -d --privileged --name jenkins-node-docker dev-docker-registry.tecnotree.com/common/jenkins-node-docker:docker-19 /usr/sbin/sshd -D
+docker exec -ti jenkins-node-docker /bin/bash
+su - jenkins
+git clone https://git.tecnotree.com/devops/jenkins-node-scala.git
+cd jenkins-node-scala
+make build
+make run
+
+## scala-2.11.8-dind
+docker run -d --privileged --name jenkins-node-scala dev-docker-registry.tecnotree.com/common/jenkins-node-scala:scala-2.11.8-dind
+## scala-2.12.7-dind
+docker run -d --privileged --name jenkins-node-scala dev-docker-registry.tecnotree.com/common/jenkins-node-scala:scala-2.12.7-dind
+
+## Python 3.x
+docker run -d --privileged --name jenkins-node-python3 dev-docker-registry.tecnotree.com/common/jenkins-node-python3:v0.2.0
+docker exec -ti jenkins-node-python3 /bin/bash
+
+su - jenkins
+git clone https://git.tecnotree.com/analytics/aml-churn-prediction.git
+
+## java-11-node
+docker run -d --privileged --name java-11-node dev-docker-registry.tecnotree.com/common/jenkins-node-java:jdk-11.0.2.9-dind_0 /usr/sbin/sshd -D
+docker exec -ti java-11-node
+su - jenkins
+export JAVA_HOME=/opt/java/openjdk
+export PATH=/opt/java/openjdk/bin:$PATH
+
+## nodejs-10.15.1-dind_0
+docker run -d --privileged --name nodejs10 dev-docker-registry.tecnotree.com/common/jenkins-node-nodejs:nodejs-10.15.1-dind_0

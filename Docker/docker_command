@@ -1,4 +1,5 @@
 docker container ls -a  --> list all container
+docker ps -f "status=exited"  --> list only exited container
 docker container stop $(docker container ls -aq)  --> stop all running container
 docker container rm  c011dc6914b6 6ff46a80324a  --> delete container name wise
 docker container rm $(docker container ls -aq)  --> delete container

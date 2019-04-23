@@ -10,6 +10,7 @@ $ kubectl get cs --> show the controller and scheduler status
 $ kubectl delete namespace cattle-system  --> delete namespace
 $ kubectl describe namespace <Namespace name>
 $ kubectl get pods --namespace kube-system  --> get pod details 
+kubectl get all --all-namespaces
 $ kubectl get services -->  to verify that a new service has been deployed on the cluster
 $ kubectl delete pods --all
 $ kubectl delete --all namespaces
