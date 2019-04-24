@@ -1,0 +1,33 @@
+                                    *****Node Package Manager (NPM)******
+
+NPM comes bundled with Node.js installables after v0.6.3 version.
+$ npm --version
+
+#### npm install ####
+#####################
+npm install npm -g  --> upgrade old version to latest
+npm install <Module Name>  -->  install any Node.js module
+
+npm ls  --> list down all the locally installed modules
+npm install <Module Name> -g   --> install any Node.js module globally
+npm ls -g  --> list down all the globally installed modules
+npm uninstall <Module Name> --> uinstallinstall any Node.js module
+
+#### package.json ####
+######################
+npm update <Module Name>  --> Update package.json and change the version of the dependency
+npm search <Module Name> --> Search a package name using NPM
+npm init  --> creating a package.json file
+npm install <pkg> --save' --> install a package and save it as a dependency in the package.json file
+
+#### Regiter package NPM ####
+#############################
+npm adduser   --> to register yourself with NPM repository site
+Username: mcmohd
+Password:
+Email: (this IS public) mcmohd@gmail.com
+
+npm publish --> to publish your module 
+
+
+For more details about NPM refer : https://www.javatpoint.com/nodejs-command-line-options

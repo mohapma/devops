@@ -3,15 +3,21 @@
 git config --global user.name "Sam Smith"
 git config --global user.email sam@example.com
 
+git config user.email "my@emailaddress.com"  --> Running git config on the current repository settings
+git config user.name "Brian Kerr"  --> Running git config on the current repository settings
+
 ##### Create a new local repository
 ####
 git init
 
-##### Check out a repository
-git clone username@host:/path/to/repository
+##### git clone #####
+#####################
+git clone https://git.tecnotree.com/digital-clm/dclm-customer-management.git --> cloning
+git clone username@host:/path/to/repository  --> Check out a repository
 
-##### Add one or more files to staging (index):
-git add <filename>
+##### git Add ####
+##################
+git add <filename>  -->Add one or more files to staging (index):
 git add *
 
 ##### Commit changes to head ######
@@ -33,6 +39,7 @@ git remote -v  --> List all currently configured remote repositories
 git checkout -b <branchname>  --> Create a new branch and switch to it
 git checkout <branchname>  --> Switch from one branch to another
 git branch  --> List all the branches
+git branch -a  --> List all branches (local and remote)
 git branch -d <branchname>  --> Delete the feature branch
 git push origin <branchname> --> Push the branch to your remote repository
 git push --all origin --> Push all branches to your remote repository
@@ -43,6 +50,7 @@ git push origin :<branchname>  --> Delete a branch on your remote repository
 git pull --> etch and merge changes on the remote server to your working directory
 git merge <branchname>   --> To merge a different branch into your active branch
 git diff --> View all the merge conflicts
+git diff –staged  --> differences between the files in the staging area and the latest version present
 git diff --base <filename>  --> View the conflicts against the base file
 git diff <sourcebranch> <targetbranch>  --> Preview changes, before merging
 git add <filename> --> After you have manually resolved any conflicts, you mark the changed file
@@ -50,8 +58,23 @@ git add <filename> --> After you have manually resolved any conflicts, you mark 
 #### Tags #####
 ###############
 git tag 1.0.0 <commitID>   --> You can use tagging to mark a significant changeset, such as a release
-git log  --> Get the CommitId
 git push --tags origin  --> Push all tags to remote repository
+
+#### git Log ####
+#################
+git log  --> Get the CommitId
+git log --<after/before/since/until>=<date>    --> Show git log with date pameters
+git log --<author>="Author Name"  --> Show git log based on commit author
+git show [commit]  --> shows the metadata and content changes of the specified commit
+
+#### git rm ####
+################
+git rm --cached <file name>  --> To remove a file from the working index (cached)
+git rm -f <file name>  --> To delete a file (force):
+git rm -r --cached <directory name>  --> To remove an entire directory from the working index (cached)
+git rm -r -f <file name>   --> To delete an entire directory (force)
+git rm --cached css/style.css rm 'css/style.css'  --> To delete a file (force)
+ 
 
 #### Undo local changes ####
 ############################
@@ -62,3 +85,8 @@ git reset --hard origin/master  --> same as above
 #### Search ####
 ################
 git grep "foo()"  --> Search the working directory for foo()
+
+#### git stash ####
+###################
+git stash -u  --> Store current work with untracked files
+git stash pop  --> Bring stashed work back to the working directory

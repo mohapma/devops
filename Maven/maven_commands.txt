@@ -1,0 +1,20 @@
+#### create below Environment variables####
+###########################################
+export M2_HOME=/home/praveen/mavensoftwares/apache-maven-3.3.9
+export JAVA_HOME=/home/praveen/mavensoftwares/jdk1.8.0_121
+export PATH=$M2_HOME/bin:$JAVA_HOME/bin:$PATH
+
+mvn --version  
+
+#### Crating a projet ####
+##########################
+mvn archetype:generate -DgroupId=com.mycompany.app -DartifactId=my-app -DarchetypeArtifactId=maven-archetype-quickstart\
+-DarchetypeVersion=1.4 -DinteractiveMode=false
+
+#### Build the Project ####
+###########################
+mvn package
+mvn install --> build the web project
+mvn -U clean deploy -DjdkLevel=11  --> build the web project
+
+#### 

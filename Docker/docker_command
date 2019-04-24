@@ -9,6 +9,11 @@ docker info 2>/dev/null -->
 docker inspect --> findout the log path
 docker create --volumes-from <RANCHER_CONTAINER_NAME> --name rancher-data rancher/rancher:<RANCHER_CONTAINER_TAG>
 
+#### container details #####
+###########################
+docker inspect <container_name>  --> See the container details along ipdetails
+docker container inspect rancher-server-2.1.0 | grep Started  --> container start time
+
 ++++++docker's default /var/lib/docker to another directory++++++
 +++++++++++++++++++++++++++++++++++++++++++
 vi /lib/systemd/system/docker.service
