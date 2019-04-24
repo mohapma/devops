@@ -1,0 +1,64 @@
+##### Git Global configuration###
+################################
+git config --global user.name "Sam Smith"
+git config --global user.email sam@example.com
+
+##### Create a new local repository
+####
+git init
+
+##### Check out a repository
+git clone username@host:/path/to/repository
+
+##### Add one or more files to staging (index):
+git add <filename>
+git add *
+
+##### Commit changes to head ######
+############################
+git commit -m "Commit message"
+git commit -a  --> commit all files
+
+#####Send changes to the master branch of your remote repository:
+git push origin master
+git status  --> to check status
+
+#### Connect to a remote repository ######
+########################################
+git remote add origin <server>   --> add the server to be able to push to 
+git remote -v  --> List all currently configured remote repositories
+
+#### Branch #####
+################
+git checkout -b <branchname>  --> Create a new branch and switch to it
+git checkout <branchname>  --> Switch from one branch to another
+git branch  --> List all the branches
+git branch -d <branchname>  --> Delete the feature branch
+git push origin <branchname> --> Push the branch to your remote repository
+git push --all origin --> Push all branches to your remote repository
+git push origin :<branchname>  --> Delete a branch on your remote repository
+
+#### Update from the remote repository ####
+#########################################
+git pull --> etch and merge changes on the remote server to your working directory
+git merge <branchname>   --> To merge a different branch into your active branch
+git diff --> View all the merge conflicts
+git diff --base <filename>  --> View the conflicts against the base file
+git diff <sourcebranch> <targetbranch>  --> Preview changes, before merging
+git add <filename> --> After you have manually resolved any conflicts, you mark the changed file
+
+#### Tags #####
+###############
+git tag 1.0.0 <commitID>   --> You can use tagging to mark a significant changeset, such as a release
+git log  --> Get the CommitId
+git push --tags origin  --> Push all tags to remote repository
+
+#### Undo local changes ####
+############################
+git checkout -- <filename>  --> If you mess up, you can replace the changes in your working tree with the last content in head
+git fetch origin --> Instead, to drop all your local changes and commits, fetch the latest history from the server and point your local master branch at it, do this
+git reset --hard origin/master  --> same as above
+
+#### Search ####
+################
+git grep "foo()"  --> Search the working directory for foo()
