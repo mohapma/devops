@@ -24,7 +24,7 @@ $ helm install stable/mysql  --> install package through helm
 $ helm create sprinboot --> ceate helm chat
 $ helm package sprinboot --> for chat packageing 
 $ helm install --dry-run --debug ./customer-management
-
+$ helm install --name example ./mychart  --> deploy package in backend
 
 ++++++++++++++Steps to create namespace++++++
 $ vi cattle-system.yaml and add below lines
