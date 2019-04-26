@@ -23,7 +23,7 @@ $ helm repo update --> helm repo update
 $ helm install stable/mysql  --> install package through helm 
 $ helm create sprinboot --> ceate helm chat
 $ helm package sprinboot --> for chat packageing 
-
+$ helm install --dry-run --debug ./customer-management
 
 
 ++++++++++++++Steps to create namespace++++++
@@ -68,3 +68,13 @@ $kubectl uncordon <nodename>
 ++++++++++++Manual Install Promithious++++++++++++
 
 
+***************** slove the tiller issue **********
+export HELM_HOST=localhost:44134
+
+NOTES:
+1. Get the application URL by running these commands:
+export NODE_PORT=$(kubectl get --namespace default -o jsonpath="{.spec.ports[0].nodePort}" services example2-mychart)
+export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].status.addresses[0].address}")
+echo http://$NODE_IP:$NODE_PORT/
+
+Helm:- https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/ 
