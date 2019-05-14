@@ -24,6 +24,7 @@ $ helm install stable/mysql  --> install package through helm
 $ helm create sprinboot --> ceate helm chat
 $ helm package sprinboot --> for chat packageing 
 $ helm install --dry-run --debug ./customer-management
+$  helm install --dry-run --debug --devel ./customer-management
 $ helm install --name example ./mychart  --> deploy package in backend
 
 ++++++++++++++Steps to create namespace++++++
@@ -78,3 +79,6 @@ export NODE_IP=$(kubectl get nodes --namespace default -o jsonpath="{.items[0].s
 echo http://$NODE_IP:$NODE_PORT/
 
 Helm:- https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/ 
+
+
+{{ "{{codeValue}}" }}   -->  If you want to use "{}" in helm chat as input.

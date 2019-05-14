@@ -1,0 +1,158 @@
+#!/usr/bin/env groovy
+
+String REGISTRY_URL = 'https://dev-docker-registry.tecnotree.com'
+String REGISTRY_LOGIN = 'dev-docker-registry-login'
+String IMAGE_NAME = 'digital-clm/dclm-web-ui'
+
+String branchName = ''
+String imageTag = ''
+String commitId = ''
+String imageLabel = ''
+
+// Continous Integration branch for integration test environment
+String CI_BRANCH = 'master'
+//host with Rancher CLI
+String RANCHER_CLI_HOST = "192.168.228.130"
+
+def enableSonarGate = false
+
+node('nodejs-10-node') {
+try {
+
+  if (env.BRANCH_NAME != null && env.BRANCH_NAME != '') {
+    branchName = env.BRANCH_NAME
+    // set gitLabConnection to push multibranch pipeline status to gitlab
+    properties([[$class: 'GitLabConnectionProperty', gitLabConnection: 'gitlab']])
+    echo "MultiBranch Pipeline ${env.BRANCH_NAME} : ${branchName}"
+  }
+
+  if (env.gitlabSourceBranch != null && env.gitlabSourceBranch != '') {
+    branchName = env.gitlabSourceBranch
+    echo "SingleBranch Pipeline ${env.gitlabSourceBranch} : ${branchName}"
+  }
+
+    stage('SCM') {
+      checkout scm    // checkout the git commit that triggered the build
+        // branch checked out will be a detached HEAD if Run/triggered from Jenkins UI
+        // NOTE: must set Advanced checkout behaviours -> 'Check out to matching local branch' in Jenkins job for this to work
+      if ("${branchName}" == "") {
+        branchName = sh(returnStdout: true, script: 'git rev-parse --abbrev-ref HEAD').trim()
+        echo "Jenkins UI triggered Run of detached HEAD branch : ${branchName}"
+      }
+      echo "Building Pipeline Branch : ${branchName}"
+      assert branchName
+
+      try {
+        // NOTE: must set Advanced clone behaviours -> 'Fetch tags' activated in Jenkins job
+        imageTag = sh(returnStdout: true, script: 'git describe').trim()
+      }
+      catch (e) {
+        echo "no tags in git repository"
+      }
+
+      commitId = env.gitlabMergeRequestLastCommit // not available in multibranch pipeline
+      imageLabel = '--label release-version='+imageTag+' --label branch-name='+branchName+' --label commit-hash='+commitId+' .'
+      echo "Image Label : ${imageLabel}"
+      assert imageLabel
+    }
+
+  // compile, package, unit test
+  gitlabCommitStatus('name': "Build") {
+    stage('Build') {
+      echo 'Build stage'
+      dir('dclm') {
+        sh '''
+            rm -rf dist
+            rm -rf node_modules
+            npm install
+            #npm ci
+            npx webpack
+           '''
+      }
+    }
+  }
+
+  // Run SonarQube analysis
+  gitlabCommitStatus('name': "SonarScan") {
+    stage('Analyze') {          
+      echo "SonarQube Analysis Stage"
+        def scannerHome = tool 'Sonar-scanner 3.2';
+        withSonarQubeEnv('sonarqube.tecnotree.com') {
+          sh "${scannerHome}/bin/sonar-scanner"
+        }       
+    }
+       
+    // note: step: waitForQualityGate does not require an executor node but step: readProperties require to be inside node
+    stage('Quality Gate') {
+      if (enableSonarGate) {
+        timeout(time: 10, unit: 'MINUTES') { // Just in case something goes wrong, pipeline will be killed after a timeout
+            def qg = waitForQualityGate()    // Reuse taskId previously collected by withSonarQubeEnv
+            if (qg.status != 'OK') {
+                currentBuild.result = 'FAILURE'
+                notifyQualityFailed()
+                error "Pipeline aborted due to SonarQuality gate FAILURE: ${qg.status}"
+            }
+            else {
+                echo "SonarQuality gate PASSED: ${qg.status}"
+                currentBuild.result = 'SUCCESS'
+            }
+        }
+     }
+    }
+  }
+
+  // build docker image, tag and push to registry
+  gitlabCommitStatus('name': "Package") {
+    stage('Package') {
+      if (imageLabel == null && imageLabel == '') {
+        imageLabel = '.'
+      }
+      echo "docker build, tag and push image ${IMAGE_NAME}:${imageTag}"
+      docker.withRegistry(REGISTRY_URL, REGISTRY_LOGIN) {
+        def image = docker.build("${IMAGE_NAME}", imageLabel)
+        if (imageTag != null && imageTag != '') {
+          image.push imageTag
+        }
+        if ("${branchName}" == "${CI_BRANCH}") {
+          image.push 'latest'
+        } else {
+          image.push "${branchName.replaceAll('/','-')}-latest"
+        }
+      }
+    }
+  }
+
+  // deploy to CI environment   **MUST UPDATE TO USE RANCHER CLI & RANCHER API TO UPGRADE STACK:SERVICE**
+  gitlabCommitStatus('name': "Deploy & Test") {
+    stage('Deploy') {
+      // Deploy only when built from the CI branch
+      if ("${branchName}" == "${CI_BRANCH}") {
+        sshagent (credentials: ['generic-ssh-key-login']){
+          echo "deploy ${CI_BRANCH} using Rancher CLI to https://rancher.tecnotree.com/"
+          //sh "scp -oStrictHostKeyChecking=no rancher/* docker@${RANCHER_CLI_HOST}:/home/docker/rancher-compose/aml-spark-recoprod/"
+          //sh "ssh -oStrictHostKeyChecking=no docker@${RANCHER_CLI_HOST} 'cd /home/docker/rancher-compose/aml-spark-recoprod && sh rancher-upgrade.sh'"
+        }
+      }
+      else
+      echo "BRANCH: ${branchName} has no CI environment to deploy"
+    }
+	}
+
+}
+  catch (e) {
+    currentBuild.result = "FAILED"
+    notifyFailed()
+    print e
+    throw e
+  }
+}
+
+def notifyFailed() {
+  emailext body: "For more details, refer ${env.BUILD_URL}", subject: "${BUILD_TAG} Build Failed", recipientProviders: [[$class: 'DevelopersRecipientProvider']], replyTo:'DL-CP-DEVOPS@tecnotree.com'
+}
+
+def notifyQualityFailed() {
+    def props = readProperties  file:'sonar-project.properties'
+    def sonarkey= props['sonar.projectKey']
+    emailext body: "Jenkins Pipeline ${env.BUILD_URL} FAILED Quality Gate.  Refer https://sonarqube.tecnotree.com/dashboard/index/${sonarkey}", subject: "Jenkins ${env.JOB_NAME}.${env.BUILD_NUMBER} Quality Gate FAILED", recipientProviders: [[$class: 'DevelopersRecipientProvider']], replyTo:'DL-CP-DEVOPS@tecnotree.com'
+}

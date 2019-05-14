@@ -1,5 +1,6 @@
 docker container ls -a  --> list all container
 docker ps -f "status=exited"  --> list only exited container
+docker container ls | grep rancher | awk '{print $10}'  --> see only container name 
 docker container stop $(docker container ls -aq)  --> stop all running container
 docker container rm  c011dc6914b6 6ff46a80324a  --> delete container name wise
 docker container rm $(docker container ls -aq)  --> delete container
@@ -12,7 +13,7 @@ docker create --volumes-from <RANCHER_CONTAINER_NAME> --name rancher-data ranche
 #### container details #####
 ###########################
 docker inspect <container_name>  --> See the container details along ipdetails
-docker container inspect rancher-server-2.1.0 | grep Started  --> container start time
+docker container inspect <container_name> | grep Started  --> container start time
 
 ++++++docker's default /var/lib/docker to another directory++++++
 +++++++++++++++++++++++++++++++++++++++++++
