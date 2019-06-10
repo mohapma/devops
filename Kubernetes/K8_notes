@@ -1,0 +1,28 @@
+####Component Of K8####
+   - API Server  --> Acts as K8 frontend, all CLI will interact with cluster through api server
+   - etcd  --> Distibuted key-value store used to manage the cluster
+   - Scheduler --> Responsible for disributing work/container across multiple nodes. 
+   - Controller --> Brain behind orchstation. Responsible for noticeing and responding when container goes down.
+   - Kubelet --> It is agent runs on each nodes and responsible for containers are running expected in nodes. 
+   - Container runtime --> Underline software to run the container(e.x docker)
+   
+####Master & Worker####
+   - Kube-apiserver,etcd,scheduler,Controller are  running in master.
+   - Container runtime and kubelet are running in worker.
+   
+####kubectl####
+It is a cli tool to manage and deploy in k8 cluster.
+
+####   #####
+
+
+
+####api version in yml###
+Kind         Version
+POD -        v1
+Service -    v1
+ReplicaSet - apps/v1
+Deployment - apps/v1
+
+   
+

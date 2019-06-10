@@ -1,0 +1,69 @@
+--Ansible is simple open source IT engine which automates application deployment, intra service orchestration, cloud provisioning and many other IT tools.
+--Ansible uses playbook to describe automation jobs, and playbook uses very simple language i.e. YAML
+
+--Ansible works by connecting to your nodes and pushing out small programs, called "Ansible modules" to them. Ansible then executes these modules (over SSH by default), and removes them when finished.
+
+#####Installation through Apt on Ubuntu####
+###################
+--For installing Ansible you have to configure PPA on your machine
+$ sudo apt-get update 
+$ sudo apt-get install software-properties-common 
+$ sudo apt-add-repository ppa:ansible/ansible 
+$ sudo apt-get update 
+$ sudo apt-get install ansible
+$ ansible --version
+
+###################
+Service/Server − A process on the machine that provides the service.
+Machine − A physical server, vm(virtual machine) or a container.
+Target machine − A machine we are about to configure with Ansible.
+Task − An action(run this, delete that) etc managed by Ansible.
+Playbook − The yml file where Ansible commands are written and yml is executed on a machine.
+###################
+
+$ Ansible abc -a "/sbin/reboot" -f 12  -> reboot for all your company servers in a group, 'abc', in 12 parallel forks
+$ Ansible abc -a "/sbin/reboot" -f 12 -u username -> same as above
+
+####Transferring file to many servers/machines####
+$ Ansible abc -m copy -a "src = /etc/yum.conf dest = /tmp/yum.conf"  
+
+#####Creating new directory####
+$ Ansible abc -m file -a "dest = /path/user1/new mode = 777 owner = user1 group = user1 state = directory" 
+
+#####Deleting whole directory and files#####
+$ Ansible abc -m file -a "dest = /path/user1/new state = absent"
+
+#####Managing Packages######
+$ Ansible abc -m yum -a "name = package_name state = present"  --> yum package is installed or not
+$ Ansible abc -m yum -a "name = package_name state = absent"  --> check the package is not installed
+$ Ansible abc -m yum -a "name = package_name state = latest"  --> checks the latest version of package is installed
+
+####Creating a New Role####
+--Roles have a structured layout on the file system. The default structure can be changed but for now let us stick to defaults.
+--Each role is a directory tree in itself. The role name is the directory name within the /roles directory.
+$ ansible-galaxy init vivekrole
+$ ansible-galaxy init --force --offline vivekrole
+
+####Utilizing Roles in Playbook####
+
+
+####command to run the playbook####
+$ sudo ansible-playbook -i hosts vivek_orchestrate.yml –vvv
+
+
+#####Note####
+@block − Ansible syntax to execute a given block.
+@name − Relevant name of the block - this is used in logging and helps in debugging that which all blocks were     successfully executed.
+@action − The code next to action tag is the task to be executed. The action again is a Ansible keyword used in yaml.
+@register − The output of the action is registered using the register keyword and Output is the variable name which holds the action output.
+@always − Again a Ansible keyword , it states that below will always be executed.
+@msg − Displays the message.
+@rescue and always are the keywords specific to exception handling.
+@Block is similar to try block where you write the code to be executed and rescue is similar to catch block and always is similar to finally.
+##############
+
+
+
+
+
+

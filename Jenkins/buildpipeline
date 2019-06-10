@@ -156,3 +156,10 @@ def notifyQualityFailed() {
     def sonarkey= props['sonar.projectKey']
     emailext body: "Jenkins Pipeline ${env.BUILD_URL} FAILED Quality Gate.  Refer https://sonarqube.tecnotree.com/dashboard/index/${sonarkey}", subject: "Jenkins ${env.JOB_NAME}.${env.BUILD_NUMBER} Quality Gate FAILED", recipientProviders: [[$class: 'DevelopersRecipientProvider']], replyTo:'DL-CP-DEVOPS@tecnotree.com'
 }
+
+
+
+#### To Pass the SSH details#####
+git branch: 'master',
+    credentialsId: '12345-1234-4696-af25-123455',
+    url: 'ssh://git@bitbucket.org:company/repo.git'

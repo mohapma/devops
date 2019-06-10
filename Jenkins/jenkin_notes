@@ -1,0 +1,7 @@
+####Jenkins - Git Setup#####
+####################
+click the Manage Jenkins -> Manage Plugins -> Git Plugin option (Install without restart) -> restart Jenkins (http://localhost:8080/jenkins/restart)
+
+####Jenkins – Maven Setup####
+#########################
+Manage Jenkins -> Configure System ->  ‘Add Maven’ button (Uncheck the ‘Install automatically’ option) -> give location of the MAVEN_HOME -> Save
