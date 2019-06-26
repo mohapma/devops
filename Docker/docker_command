@@ -27,6 +27,11 @@ $ systemctl stop docker
 first need to mount the volume for docker=======
 $ mount -t  /dev/sda3 /var/lib/docker/overlay2 -t overlay
 
+#####Create Docker Image and push#####
+######################################
+docker build -t dev-docker-registry.tecnotree.com/digital-cbs/revenue-ui:v1.0.0 .
+docker push dev-docker-registry.tecnotree.com/digital-cbs/revenue-ui:v1.0.0
+
 
 Command to extend the lvm parition for docker++++++++
 ++++++++++++++++++++++++
