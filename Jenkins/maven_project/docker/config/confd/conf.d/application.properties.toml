@@ -1,0 +1,4 @@
+[template] 
+src = "application.properties.tmpl"
+dest = "/usr/local/tomcat/config/application.properties"
+mode = "0555"
