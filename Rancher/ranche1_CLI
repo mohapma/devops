@@ -1,0 +1,192 @@
+RANCHER CLI COMMANDS####
+####################
+1. catalog --> Operations with catalogs
+       $rancher catalog upgrade/install
+	       --answers value, -a value	-> Answer file. Format should be yaml or json with the appropriate file extension suffixed.
+		   --stack value, -s value -> Stack id to upgrade
+		   --confirm	-> Wait for upgrade and confirm it
+		$rancher catalog show
+		   --quiet, -q	-> Only display IDs
+           --format value	-> json or Custom format: ‘{{.ID}} {{.Template.Id}}’
+           --system, -s	-> Show system templates, not user
+           --env	-> Select a differente environment to query the catalog template versions
+		$rancher catalog ls
+		   --quiet, -q	-> Only display IDs
+           --format value	-> json or Custom format: ‘{{.ID}} {{.Template.Id}}’
+           --system, -s	-> Show system templates, not user
+	
+2. config --> Setup client configuration
+       --print  -> Print the current configuration
+	   ex. rancher config --print
+
+3. docker --> Run docker CLI on a host
+       --help-docker -> Display the docker --help
+
+4. environment, env --> Interact with environments
+       $rancher env activate/deactivate
+          --all, -a   -> Show stop/inactive and recently removed resources
+	      --quiet, -q -> Only display IDs
+	      --format  -> json or Custom format
+		$rancher env rm
+		$rancher env ls
+		$rancher env create
+
+5. events, event  --> Displays resource change events
+        $rancher events
+           --format  -> json or Custom format
+		   --reconnect, -r  -> Reconnect on error
+		
+6. exec  --> Run a command on a container
+        $rancher exec -i -t 1i10
+
+7. export --> Export configuration yml for a stack as a tar archive or to local files
+        $rancher export
+           --file value, -f value  -> Write to a file, instead of local files, use - to write to STDOUT
+		   --system, -s  -> If exporting the entire environment, include system
+
+8. hosts, host  --> Operations on hosts
+        $rancher hosts ls
+		   --all, -a  -> Show stop/inactive and recently removed resources
+		   --quiet, -q  -> Only display IDs
+		   --format value -> json or Custom format         
+		$rancher hosts create
+
+9. logs  --> Fetch the logs of a container
+        $rancher logs
+		   --service, -s -> Show service logs
+           --sub-log  -> Show service sub logs
+           --follow, -f -> Follow log output
+           --tail value  -> Number of lines to show from the end of the logs (default: 100)
+           --since value  -> Show logs since timestamp
+           --timestamps, -t -> Show timestamps
+
+10. ps  --> Show services/containers
+        $rancher ps
+		   --all, -a -> Show stop/inactive and recently removed resources
+		   --system, -s  -> Show system resources
+		   --containers, -c  -> Display containers
+		   --quiet, -q  -> Only display IDs
+		   --format value  -> json or Custom format
+
+11. restart --> Restart service, container
+        $rancher restart
+		   --type value -> Restrict restart to specific types (service, container)
+		   --batch-size value  -> Number of containers to restart at a time (default: 1)
+		   --interval value  -> Interval in millisecond to wait between restarts (default: 1000)
+
+12. rm  --> Delete service, container, stack, host, volume
+        $rancher rm
+		   --type value -> Restrict delete to specific types
+		   --stop, -s -> Stop or deactivate resource first if needed before deleting
+
+13. run --> Run services
+        $rancher run --name App2/app nginx
+
+14. scale  --> Set number of containers to run for a service
+        $rancher scale <stackName>/<serviceName>=5 <serviceID>=3
+
+15. ssh  -->  SSH into host
+        $rancher ssh <hostID>
+
+16. stacks, stack  --> Operations on stacks
+        $rancher stacks ls
+		   --system, -s	 -> Show system resources
+           --quiet, -q	-> Only display IDs
+           --format value-> json or Custom format
+		$rancher stacks create
+		   --system, -s -> Show system resources
+		   --quiet, -q -> Only display IDs
+		   --format value -> json or Cust om format
+
+17. start, activate  --> Start or activate service, container, host, stack
+        $ rancher start/activate
+		    --type value  -> Restrict start/activate to specific types (service, container, host, stack)
+
+18. stop, deactivate  --> Stop or deactivate service, container, host, stack
+        $ rancher stop/deactivate
+		   --type value	-> Restrict stop/deactivate to specific types (service, container, host, stack)
+19. up  --> Bring all services up
+        $ rancher up
+		   --pull, -p -> Before doing the upgrade do an image pull on all hosts that have the image already
+		   --prune -> Remove services in the stack that do not exist in current compose file
+		   -d  -> Do not block and log
+		   --upgrade, -u, --recreate  -> Upgrade if service has changed
+		   --force-upgrade, --force-recreate  -> Upgrade regardless if service has changed
+		   --confirm-upgrade, -c  -> Confirm that the upgrade was success and delete old containers
+		   --rollback, -r  -> Rollback to the previous deployed version
+		   --batch-size value  -> Number of containers to upgrade at once (default: 2)
+		   --interval value  -> Update interval in milliseconds (default: 1000)
+		   --rancher-file value  -> Specify an alternate Rancher compose file (default: rancher-compose.yml)
+		   --env-file value, -e value  -> Specify a file from which to read environment variables. File should be in yaml or json format and suffixed with respective file extension.
+		   --file value, -f value  -> Specify one or more alternate compose files (default: docker-compose.yml)
+		   --stack value, -s value -> Specify an alternate project name (default: directory name)
+
+20. volumes, volume  --> Operations on volumes
+        $rancher volume ls
+		    --all, -a-> Show stop/inactive and recently removed resources
+            --quiet, -q	 -> Only display IDs
+            --format -> value	json or Custom format: ‘{{.ID}} {{.Volume.Name}}’
+		$rancher volume rm
+		$rancher volume create
+		    --driver value  -> Specify volume driver name
+			--opt value  -> Set driver specific key/value options
+21. inspect  --> View details for service, container, host, environment, stack, volume
+
+22. wait  --> 	Wait for resources service, container, host, stack, machine, projectTemplate
+
+
+####Sample code for Rancher 1.0 CD process####
+- create a rancher folder under the project 
+- create rancher-upgrade-dev.sh for dev CD process
+
+vi rancher-upgrade-dev.sh
+#!/bin/sh
+# rancher CLI called from Jenkins CI pipeline for continuous deployment
+
+export imageTag=${1:-"feature-latest"}
+export imageName=${2:-"digital-accelerator/management/dap-management-ui"}
+
+export RANCHER_PROJECT_NAME=${3:-"dap-management-ui"}
+
+export RANCHER_URL="https://rancher.tecnotree.com/v1"
+export RANCHER_ENVIRONMENT="1a194894"
+export RANCHER_ACCESS_KEY="CAA341DF68C00A86D90A"
+export RANCHER_SECRET_KEY="4TzqZSyyYu8vuvoUfnFmuRBC5dLwgjN2ZJ7ZUech"
+
+wget https://nexus.tecnotree.com/repository/raw-3rd-party/rancher/cli/v0.6.13/rancher-linux-amd64-v0.6.13.tar.gz -O - | tar -zx  -C . --strip-components=2
+
+rm -rf ${RANCHER_PROJECT_NAME}
+./rancher export ${RANCHER_PROJECT_NAME}
+cd ${RANCHER_PROJECT_NAME}
+sed -i "s|${imageName}.*|${imageName}:${imageTag}|g" ./docker-compose.yml
+../rancher up --upgrade -c -d
+
+echo "deployed ${imageName}:${imageTag}"
+exit 0
+
+######### Then add the below lines in jenkins pipeline for CD process#####
+ // upgrade Rancher stack image 
+  gitlabCommitStatus('name': "Deploy") {
+    stage('Deploy') {
+        dir('rancher') {
+          if ("${branchName}" == "${DEV_BRANCH}") {
+            sh """chmod +x rancher-upgrade-dev.sh && ./rancher-upgrade-dev.sh ${imageTag}"""
+          }
+          else if ("${branchName}" == "${INT_BRANCH}") {
+            sh """chmod +x rancher-upgrade-int.sh && ./rancher-upgrade-int.sh ${imageTag}"""
+          }
+          else
+          echo "BRANCH: ${branchName} has no environment to deploy"
+        }
+    }
+  }
+
+}
+
+
+##############################################################################################
+##############################################################################################
+                      Rancher 2.0 CLI
+##############################################################################################
+
+					  

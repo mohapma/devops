@@ -27,6 +27,11 @@ $ helm install --dry-run --debug ./customer-management
 $ helm install --dry-run --debug --devel ./customer-management
 $ helm install --name example ./mychart  --> deploy package in backend
 
++++++++++++++++++++++++++++++
+++++++Start rancher server from image++++++++
++++++++++++++++++++++++++++++++++++++=
+docker run -d --volumes-from rancher-data --restart=unless-stopped -p 80:80 -p 443:443 rancher/rancher:latest
+
 ++++++++++++++Steps to create namespace++++++
 $ vi cattle-system.yaml and add below lines
 apiVersion: v1

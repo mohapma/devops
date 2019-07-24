@@ -21,22 +21,22 @@ Task − An action(run this, delete that) etc managed by Ansible.
 Playbook − The yml file where Ansible commands are written and yml is executed on a machine.
 ###################
 
-$ Ansible abc -a "/sbin/reboot" -f 12  -> reboot for all your company servers in a group, 'abc', in 12 parallel forks
-$ Ansible abc -a "/sbin/reboot" -f 12 -u username -> same as above
+$ Ansible group_name -a "/sbin/reboot" -f 12  -> reboot for all your company servers in a group, 'abc', in 12 parallel forks
+$ Ansible group_name -a "/sbin/reboot" -f 12 -u username -> same as above
 
 ####Transferring file to many servers/machines####
-$ Ansible abc -m copy -a "src = /etc/yum.conf dest = /tmp/yum.conf"  
+$ Ansible group_name -m copy -a "src = /etc/yum.conf dest = /tmp/yum.conf"  
 
 #####Creating new directory####
-$ Ansible abc -m file -a "dest = /path/user1/new mode = 777 owner = user1 group = user1 state = directory" 
+$ Ansible group_name -m file -a "dest = /path/user1/new mode = 777 owner = user1 group = user1 state = directory" 
 
 #####Deleting whole directory and files#####
-$ Ansible abc -m file -a "dest = /path/user1/new state = absent"
+$ Ansible group_name -m file -a "dest = /path/user1/new state = absent"
 
 #####Managing Packages######
-$ Ansible abc -m yum -a "name = package_name state = present"  --> yum package is installed or not
-$ Ansible abc -m yum -a "name = package_name state = absent"  --> check the package is not installed
-$ Ansible abc -m yum -a "name = package_name state = latest"  --> checks the latest version of package is installed
+$ Ansible group_name -m yum -a "name = package_name state = present"  --> yum package is installed or not
+$ Ansible group_name -m yum -a "name = package_name state = absent"  --> check the package is not installed
+$ Ansible group_name -m yum -a "name = package_name state = latest"  --> checks the latest version of package is installed
 
 ####Creating a New Role####
 --Roles have a structured layout on the file system. The default structure can be changed but for now let us stick to defaults.

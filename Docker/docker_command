@@ -7,6 +7,7 @@ docker container rm $(docker container ls -aq)  --> delete container
 docker exec -it container_name /bin/bash --> go to inside container
 docker  logs --details f43b2c842315
 docker info 2>/dev/null --> 
+docker system prune --all --volumes --force   --> remove old images
 docker inspect --> findout the log path
 docker create --volumes-from <RANCHER_CONTAINER_NAME> --name rancher-data rancher/rancher:<RANCHER_CONTAINER_TAG>
 
