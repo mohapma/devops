@@ -4,12 +4,14 @@ docker container ls | grep rancher | awk '{print $10}'  --> see only container n
 docker container stop $(docker container ls -aq)  --> stop all running container
 docker container rm  c011dc6914b6 6ff46a80324a  --> delete container name wise
 docker container rm $(docker container ls -aq)  --> delete container
+ docker container rm $(docker ps -f "status=exited")  --> delete exited container
 docker exec -it container_name /bin/bash --> go to inside container
 docker  logs --details f43b2c842315
 docker info 2>/dev/null --> 
 docker system prune --all --volumes --force   --> remove old images
 docker inspect --> findout the log path
 docker create --volumes-from <RANCHER_CONTAINER_NAME> --name rancher-data rancher/rancher:<RANCHER_CONTAINER_TAG>
+docker ps -q | xargs  docker stats --no-stream 
 
 #### container details #####
 ###########################
