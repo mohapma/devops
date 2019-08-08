@@ -10,16 +10,51 @@ $ kubectl get cs --> show the controller and scheduler status
 $ kubectl delete namespace cattle-system  --> delete namespace
 $ kubectl describe namespace <Namespace name>
 $ kubectl get pods --namespace kube-system  --> get pod details 
-$ kubectl get all --all-namespaces
+$ kubectl get all --namespace dap  --> see all info
 $ kubectl get services -->  to verify that a new service has been deployed on the cluster
 $ kubectl delete pods --all
 $ kubectl delete --all namespaces
 $ kubectl describe svc prometheus
+$ kubectl top pod --namespace dap --> resources usages
 $ kubectl get nodes | egrep '(^NAME|NotReady)' --> 
 $ kubectl delete pods <pod> --grace-period=0 --force  --> delete a Pod forcibly
 $ kubectl delete node --all  --> delete all nodes
 $ kubectl get deployment my-dep   --> List a particular deployment
 $ kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10  --> Horizontal Pod Autoscaler
+$ kubectl get hpa  --> check the current status of autoscaler by running
+$ kubectl get pods --namespace  dap -o=json | jq -c '.items[] | {name: .metadata.name, namespace: .metadata.namespace, claimName: .spec |  select( has ("volumes") ).volumes[] | select( has ("persistentVolumeClaim") ).persistentVolumeClaim.claimName }'
+ 
+ 
+ 
+Leave a comment
+
+Attach files by dragging & dropping, selecting or pasting them.
+Assignees
+No one assigned
+Labels
+kind/feature
+sig/cli
+sig/storage
+Projects
+None yet
+Milestone
+No milestone
+Notifications
+Customize
+You’re not receiving notifications from this thread.
+12 participants
+@dsalamancaMS
+@gnufied
+@krmayankk
+@clandry94
+@k8s-ci-robot
+@feiskyer
+@pradeep-kaloori
+@azzaka
+@porrascarlos802018
+@amanjain08
+@Moshem123
+@silenceshell
 
 $ helm ls --> see the helm repo list
 $ helm repo update --> helm repo update
@@ -90,3 +125,6 @@ Helm:- https://docs.bitnami.com/kubernetes/how-to/create-your-first-helm-chart/
 
 
 {{ "{{codeValue}}" }}   -->  If you want to use "{}" in helm chat as input.
+
+###Start minikube####
+minikube start --vm-driver hyperv --cpus 2 --memory=4096 --hyperv-virtual-switch “Primary Virtual Switch”
