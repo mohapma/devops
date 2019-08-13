@@ -25,6 +25,20 @@ $ kubectl get hpa  --> check the current status of autoscaler by running
 $ kubectl get pods --namespace  dap -o=json | jq -c '.items[] | {name: .metadata.name, namespace: .metadata.namespace, claimName: .spec |  select( has ("volumes") ).volumes[] | select( has ("persistentVolumeClaim") ).persistentVolumeClaim.claimName }'
  
  
+ #####Volume#####
+ kubectl get pv
+ kubectl get pv pvc-d470bd7c-9e5e-11e9-b50d-005056b006d7
+ kubectl patch pvc/"ata-mariadb-mariadb-master-0" \
+  --namespace "dap" \
+  --patch '{"spec": {"resources": {"requests": {"storage": "20Gi"}}}}'
+ 
+ kubectl get storageclass  --> get storageclass
+ kubectl describe storageclass rook-ceph-block-x3   --> see the storageclass details
+ 
+ kubectl get pvc -n dap
+ kubectl edit pvc data-mariadb-mariadb-0 -n dap
+ 
+ #######################
  
 Leave a comment
 

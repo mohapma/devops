@@ -1,17 +1,59 @@
-docker container ls -a  --> list all container
-docker ps -f "status=exited"  --> list only exited container
+#####Docker container commands######
+################################
+
+docker container ls -a                                  --> list all container
+docker ps -f "status=exited"                            --> list only exited container
 docker container ls | grep rancher | awk '{print $10}'  --> see only container name 
-docker container stop $(docker container ls -aq)  --> stop all running container
-docker container rm  c011dc6914b6 6ff46a80324a  --> delete container name wise
-docker container rm $(docker container ls -aq)  --> delete container
- docker container rm $(docker ps -f "status=exited")  --> delete exited container
-docker exec -it container_name /bin/bash --> go to inside container
+docker container stop $(docker container ls -aq)        --> stop all running container
+docker container rm  c011dc6914b6 6ff46a80324a          --> delete container name wise
+docker container rm $(docker container ls -aq)          --> delete container
+docker container rm $(docker ps -f "status=exited")     --> delete exited container
+docker container prune                                  --> delete stopped container
+docker exec -it container_name /bin/bash                --> go to inside container
 docker  logs --details f43b2c842315
 docker info 2>/dev/null --> 
-docker system prune --all --volumes --force   --> remove old images
+docker system prune --all --volumes --force             --> remove old images
 docker inspect --> findout the log path
 docker create --volumes-from <RANCHER_CONTAINER_NAME> --name rancher-data rancher/rancher:<RANCHER_CONTAINER_TAG>
 docker ps -q | xargs  docker stats --no-stream 
+
+#####Docker image commands######
+################################
+
+docker image build	                                    --> Build an image from a Dockerfile
+docker image history	                                --> Show the history of an image
+docker image import	                                    --> Import the contents from a tarball to create a filesystem image
+docker image inspect	                                --> Display detailed information on one or more images
+docker image load	                                    --> Load an image from a tar archive or STDIN
+docker image ls	                                        --> List images
+docker image prune	                                    --> Remove unused images
+docker image pull	                                    --> Pull an image or a repository from a registry
+docker image push	                                    --> Push an image or a repository to a registry
+docker image rm	                                        --> Remove one or more images
+docker image save	                                    --> Save one or more images to a tar archive (streamed to STDOUT by default)
+docker image tag	                                    -->Create a tag TARGET_IMAGE that refers to SOURCE_IMAGE
+docker system df	                                    --> Show docker disk usage
+docker system events	                                --> Get real time events from the server
+docker system info	                                    --> Display system-wide information
+docker system prune	                                    --> Remove unused data
+docker rmi $(docker images -a -q)                       --> remove all images
+docker rmi $(docker images --filter "dangling=true" -q --no-trunc) --> remove unused image
+
+######
+
+docker system prune -a   --> delete all unused image, container, volume
+
+#####Docker volume commands######
+################################
+docker volume rm $(docker volume ls -qf dangling=true)  --> delete volumes 
+docker volume ls -qf dangling=true | xargs -r docker volume rm  --> delete volumes
+
+#####Docker N/W commands######
+################################
+
+docker network ls  
+docker network ls | grep "bridge"   
+docker network rm $(docker network ls | grep "bridge" | awk '/ / { print $1 }')
 
 #### container details #####
 ###########################

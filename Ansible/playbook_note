@@ -1,0 +1,13 @@
+ex. https://git.tecnotree.com/tap/playbook/
+
+# some basic default values...
+inventory = /etc/ansible/hosts
+
+edit the ./deployment/ansible/inventories/hosts
+
+Follow this order when executing the plays
+1. prerequisites.yml
+2. configure.yml
+3. docker.yml
+4. rancher_server.yml
+5. rancher_agents.yml
