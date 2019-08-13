@@ -1,0 +1,5 @@
+[subtitle-rhel-7-server-rpms]
+baseurl = http://subtitle.tecnotree.com/rhel/7Server/os/x86_64/
+name = Red Hat Enterprise Linux 7 Server (RPMs)
+enabled = 1
+gpgcheck = 0

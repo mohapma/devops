@@ -1,0 +1,70 @@
+---
+- name: Install necessary packages and update
+  block:
+
+    - name: Do an update and upgrade for debian family
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: first round of installs
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - aptitude
+        - build-essential
+        - python-selinux
+
+  when: ansible_os_family == "Debian"
+
+- name: RedHat family add specific repos
+  block:
+
+    - name: Add tecnotree repo for RedHat
+      yum_repository:
+        name: rhel7.repo
+        description: Red Hat Enterprise Linux 7 Server (RPMs)
+        baseurl: http://subtitle.tecnotree.com/rhel/7Server/os/x86_64/
+        enabled: 0
+        gpgcheck: 0
+      when: ansible_distribution == "RedHat"
+
+    - name: Copy repo file for OracleLinux
+      copy:
+        src: ./files/rhel7-194.repo
+        dest: /etc/yum.repos.d/rhel7-194.repo
+        owner: root
+        group: root
+        mode: 0755
+        backup: "yes"
+      when: ansible_distribution == "OracleLinux"
+
+  when:
+    - add_specific_repos | default(false)
+    - ansible_os_family == "RedHat"
+
+- name: RedHat family yum clean and update
+  block:
+
+    - name: Clean yum parts
+      command: "{{ ansible_pkg_mgr }} clean all"
+      args:
+        warn: no
+
+    - name: Remove yum cache dir
+      file:
+        path: /var/cache/yum
+        state: absent
+
+    - name: "Add general repos for {{ ansible_distribution }}"
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest"
+      with_items: "{{ vars[ansible_distribution] | default([]) }}"
+
+    - name: Add package and perforum update
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest"
+      with_items:
+        - libselinux-python
+        - "*"
+
+  when: ansible_os_family == "RedHat"

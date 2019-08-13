@@ -1,0 +1,31 @@
+- name: "Storage :: Create volume group {{ docker.storage.vg_name }}"
+  lvg:
+    vg: "{{ docker.storage.vg_name }}"
+    pvs: "{{ docker.storage.block_device }}"
+
+- name: "Storage :: Create the logical volume {{ docker.storage.lv_name }}"
+  lvol:
+    vg: "{{ docker.storage.vg_name }}"
+    lv: "{{ docker.storage.lv_name }}"
+    size: +100%FREE
+    opts: "--wipesignatures y"
+
+- name: "Storage :: Create new filesystem on new LVM logical volume(s)"
+  filesystem:
+    fstype: "{{ docker.storage.filesystem }}"
+    dev: "/dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+    opts: "-n ftype=1"
+    force: yes
+  when: docker.storage.block_device !=""
+
+- name: "Storage :: mounting new filesystem"
+  mount:
+    path: "/var/lib/docker"
+    src: "/dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+    fstype: "{{ docker.storage.filesystem }}"
+    state: "mounted"
+
+#- name: "Storage :: Resizing xfs"
+#  command: "xfs_growfs -d /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+#  when: docker.storage.filesystem  == "xfs"
+

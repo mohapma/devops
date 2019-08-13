@@ -1,0 +1,161 @@
+# Play Name: docker.yml
+# Version: 1.0
+#
+# Execution Order: 3
+#
+# Description:
+#   This play installs docker and configures the docker storage with the aide of docker dole
+#
+# Variables:
+#   target_hosts: defaults to all, can be used to play on a host or group of hosts
+#
+# Group Variables:
+#
+# Play Dependencies:
+#
+# Role Dependencies:
+#  docker.storage
+#
+# Example usage:
+#
+#  ansible-playbook -i inventories/development -u sudousr -k -K ./playbooks/install_docker.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/install_docker.yml
+#  ansible-playbook -i inventories/development ./playbooks/docker.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/install_docker.yml -e target_hosts=vm1
+#
+# TROUBLE shooting:
+#   If docker is already installed then it needs to be removed
+#
+#     ansible -i inventory/dev docker_vms -m command -a "sudo yum remove docker"
+#
+---
+- hosts: "{{ target_hosts | default('docker_vms')}}"
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    - name: "Check Fails :: Target virtualization type"
+      fail:
+        msg: "Failed: target virtualization must not be openvz!"
+      when: ansible_virtualization_type == "openvz"
+
+    - name: "Check Fails :: Kernel Version"
+      fail:
+        msg: >
+          Wrong kernel Version found
+          [ {{ ansible_kernel }} < {{ "3.10.0-514" }} ]
+          Resolve this issue before continuing!
+      when:
+        - ansible_os_family == "RedHat"
+        - ansible_kernel | version_compare("3.10.0-514", '<')
+
+    - name: "Check Fails :: is docker already installed?"
+      command: docker -v
+      register: docker_version
+      failed_when: false
+
+    - name: Fail if docker is already installed
+      fail:
+        msg: "Failed: uninstall previous docker first!"
+      when: docker_version is defined and docker_version.rc ==0
+
+    - name: Check storage fails for docker
+      include_role:
+        name: docker.storage
+      vars:
+        check_storage_fails: true
+
+    - name: Check for internet connection
+      uri:
+        url: http://google.com
+        return_content: no
+      until: result.status == 200
+      ignore_errors: yes
+      register: result
+      changed_when: no
+      failed_when: false
+      retries: 3
+      delay: 3
+      when: docker.check_internet
+
+    - block:
+
+        - name: Add Docker CE repository
+          get_url:
+            url: https://download.docker.com/linux/centos/docker-ce.repo
+            dest: /etc/yum.repos.d/docker-ce.repo
+            mode: 0644
+          when:
+            - docker.version == "docker-ce"
+            - ansible_os_family == "RedHat"
+
+        - name: "Install python-setuptools if not already"
+          action: "{{ ansible_pkg_mgr }} name=python-setuptools state=latest"
+
+        - name: Installing important dependencies
+          easy_install:
+            name: "{{ item }}"
+          with_items:
+            - pip
+            - httplib2
+
+        - name: Installing additional tools
+          pip:
+            name: "{{ item }}"
+            state: present
+          with_items:
+            - docker-compose
+            - docker
+      when: 
+        - docker.check_internet
+        - result is defined
+        - result.status == 200
+
+    - name: "Install {{ docker.version }} from repo"
+      action: "{{ ansible_pkg_mgr }} name={{ docker.version }} state=latest"
+
+    - name: Add the docker group and members if defined
+      block:
+
+        - name: Get list of users
+          getent:
+            database: passwd
+            fail_key: false
+
+        - name: Add docker group
+          group:
+            name: docker
+            state: present
+
+        - name: Only add members to docker group if they already exists
+          user:
+            name: "{{ item }}"
+            groups: docker
+            append: yes
+          with_items: "{{ docker.group_members }}"
+          when: getent_passwd[item] is defined
+
+      when:
+        - docker.group_members is defined
+
+    - name: Docker Create docker dir if not already
+      file:
+        path: "{{ item }}"
+        state: directory
+        mode: 0700
+      with_items:
+        - /etc/docker
+
+    - name: Setup options and storage for docker
+      include_role:
+        name: docker.storage
+      vars:
+        docker_options_template: true
+      tags: dstorage
+
+    - name: Start and enable Docker
+      service:
+        name: docker
+        enabled: yes
+        state: restarted
+      when: docker.start_docker

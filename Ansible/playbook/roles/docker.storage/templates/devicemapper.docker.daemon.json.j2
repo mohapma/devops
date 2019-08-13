@@ -1,0 +1,27 @@
+{
+  "registry-mirror": "https://proxy-registry.tecnotree.com",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "live-restore": true,
+  "storage-driver": "devicemapper",
+  "storage-opts": [
+{%if docker.storage.block_device != '' %}
+        "dm.directlvm_device={{ docker.storage.block_device }}",
+{% else %}
+        "dm.directlvm_device=/dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}",
+{% endif %}
+        "dm.thinp_percent=95",
+        "dm.thinp_metapercent=1",
+        "dm.thinp_autoextend_threshold=80",
+        "dm.thinp_autoextend_percent=20",
+        "dm.directlvm_device_force=true"
+    ]
+{%if extra_daemon_options is defined %}
+    {% for key, value in extra_daemon_options.iteritems() %}
+    ,"{{key}}": {{value | to_json }}
+    {% endfor %}
+{% endif %}
+}

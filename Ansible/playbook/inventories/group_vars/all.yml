@@ -1,0 +1,29 @@
+---
+#################### prerequisites
+
+force_reboot: no
+
+disable:
+  SElinux: true
+  IP6: true
+
+#################### configurations
+
+ntp_timezone: ""  # Europe/Helsinki
+ntp_sync_with: "" # 0.nl.pool.ntp.org
+
+# requires internet/external connection
+install_useful_tools: false
+
+external_hosts_list:
+  - { ip: "194.42.63.195", alias: "registry.tecnotree.com proxy-registry.tecnotree.com" }
+
+
+################### ansible related shortcuts - dev only
+
+# not if using jump server this may work, change values off course
+ansible_user: root
+ansible_ssh_pass: tecnotree
+ansible_sudo_pass: tecnotree
+
+

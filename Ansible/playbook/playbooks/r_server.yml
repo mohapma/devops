@@ -1,0 +1,79 @@
+# Play Name: rancher_server.yml
+# Version: 1.0
+#
+# Execution Order: 4
+#
+# Description:
+#   This play installs rancher server and adds the docker_vms hosts to the 
+#    created rancher server(s) " conatiners "
+#
+# Variables:
+#   target_hosts: defaults to all, can be used to play on a host or group of hosts
+#
+# Group Variables:
+#   ../group_vars/rancher_servers.yml
+#
+# Role Dependencies:
+#
+#
+# Example usage:
+#
+#  ansible-playbook -i inventories/development -u tecnotree -k -K ./playbooks/r_server.yml
+#  ansible-playbook -i inventories/development -u tecnotree ./playbooks/r_server.yml
+#  ansible-playbook -i inventories/development ./playbooks/r_server.yml
+#  ansible-playbook -i inventories/development -u tecnotree ./playbooks/r_server.yml -e target_hosts=vm1
+#
+#
+---
+- name: Get docker vm hosts
+  hosts: "docker_vms"
+  become: no
+  gather_facts: yes
+  tasks:
+
+    - name: Create a dict of docker_vms hosts
+      set_fact:
+        host_ip_v: "{{ host_ip_v|default({}) | combine( {item: hostvars[item].ansible_default_ipv4.address } ) }}"
+      with_items: "{{ groups.docker_vms }}"
+
+- name: Setup the rancher servers
+  hosts: "rancher_servers"
+  become: no
+  gather_facts: yes
+  tasks:
+
+    - name: Ping target hosts to make sure they are reachable
+      ping:
+
+    - name: Check if docker is already installed
+      command: docker -v
+      register: docker_version
+
+    - name: Fail if docker is already installed
+      fail:
+        msg: "Failed: uninstall previous docker first!"
+      when: docker_version is defined and docker_version.rc !=0
+
+    - name: Prepare dict of hosts
+      set_fact:
+        server_hosts_v: "{{ server_hosts_v|default({}) | combine( {item.alias: item.ip } ) }}"
+      with_items: "{{ external_hosts_list }}"
+
+    - name: Pull and run the rancher-server contianer
+      docker_container:
+        name: "rancher-server"
+        image: rancher/server:{{ rancher_version }}
+        restart_policy: unless-stopped
+        etc_hosts: "{{ server_hosts_v |combine(host_ip_v) }}"
+        ports:
+          - "{{ rancher_server_port }}:8080"
+
+    - name: Wait for the rancher server to start
+      action: command docker logs rancher-server
+      register: rancher_logs
+      until: rancher_logs.stdout.find("Listening on") != -1
+      retries: 30
+      delay: 10
+
+    - name: Show messages
+      debug: msg="Rancher server is at http://{{ rancher_server }}:{{ rancher_server_port }}"

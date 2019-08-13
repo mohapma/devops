@@ -1,0 +1,6 @@
+---
+#################### rancher_servers
+
+rancher_version: "latest"
+rancher_port: 8080
+

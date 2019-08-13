@@ -1,0 +1,37 @@
+---
+- name: Install package updates
+  block:
+
+    - name: Do an update and upgrade for debian family
+      apt:
+        update_cache: yes
+        upgrade: yes
+
+    - name: first round of installs
+      apt:
+        name: "{{ item }}"
+        state: present
+      with_items:
+        - "*" 
+
+  when: ansible_os_family == "Debian"
+
+- name: RedHat family yum clean and update
+  block:
+
+    - name: Clean yum parts
+      command: "{{ ansible_pkg_mgr }} clean all"
+      args:
+        warn: no
+
+    - name: Remove yum cache dir
+      file:
+        path: /var/cache/yum
+        state: absent
+
+    - name: Perform package update
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest exclude=docker-ce"
+      with_items:
+        - "*"
+
+  when: ansible_os_family == "RedHat"

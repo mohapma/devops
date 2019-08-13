@@ -1,0 +1,35 @@
+---
+- hosts: "{{ target_hosts | default('docker_vms')}}"
+  name: A utility play
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    - name: "unless stopped"
+      shell: "docker update --restart=unless-stopped $(docker ps -a -q);"
+      ignore_errors: yes
+
+    - name: "stop containers"
+      shell: "docker stop $(docker ps -a -q);"
+      ignore_errors: yes
+
+    - name: "rm containers"
+      shell: "docker rm $(docker ps -a -q);"
+      ignore_errors: yes
+
+    - name: "rm image"
+      shell: "docker rmi $(docker images -q);"
+      ignore_errors: yes
+
+    - name: "rm volumes"
+      shell: "docker volume ls -qf dangling=true | xargs -r docker volume rm"
+      ignore_errors: yes
+
+    - name: "rm volumes"
+      shell: "docker system prune -a -f"
+      ignore_errors: yes
+
+
+
+# ansible rancher_agents -m shell -a "docker system prune -a -f"
+

@@ -1,0 +1,42 @@
+---
+- hosts: "{{ target_hosts | default('all')}}"
+  name: A utility play
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    - name: "Get source mount point /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }} if exists."
+      command: "findmnt -nfo SOURCE /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+      ignore_errors: yes
+      register: mpoint
+
+    - name: "Umount different docker paths"
+      command: "umount {{ item }}"
+      ignore_errors: yes
+      with_items:
+        - "/var/lib/docker"
+        - "/dev/{{ docker.storage.vg_name }}/{{ docker.storage_lv_name }}"
+        - "{{ mpoint.stdout_lines[0] }}"
+
+    - name: Remove the previous mount point in fstab
+      lineinfile:
+        dest: /etc/fstab
+        regexp: "{{ mpoint.stdout_lines[0] }}"
+        state: absent
+      ignore_errors: yes
+      when:
+        - mpoint.rc==0
+        - "{{ mpoint.stdout_lines | length == 1 }}"
+
+    - name: Perform a mount to clear previous mount points
+      command: "mount -a"
+
+#sudo vgremove docker
+
+#    - name: remove the logical volume designated for docker
+#      lvol:
+#        vg: "{{ docker.storage.vg_name }}"
+#        lv: "{{ docker.storage.lv_name }}"
+#        state: absent
+#        force: yes
+#

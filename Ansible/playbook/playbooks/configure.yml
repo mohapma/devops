@@ -1,0 +1,260 @@
+# Play Name: configure.yml
+# Version: 1.0
+#
+# Execution Order: 2
+#
+# Description:
+#   This play configures the target host(s) by installing necessary packages and ntp
+#
+# Variables:
+#   target_hosts: defaults to all, can be used to play on a host or group of hosts
+#   ntp_timezone: defaults to Etc/UTC by geerlingguy.ntp role.
+#   ntp_sync_with: the ntp address to sync time with e.g "0.nl.pool.ntp.org"
+#   external_hosts_list: a hosts list to add to each target host in /etc/hosts file
+#
+# Role Dependencies:
+#   geerlingguy.ntp
+#
+# Example usage:
+#
+#  ansible-playbook -i inventories/development -u sudousr -k -K ./playbooks/configure.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/configure.yml
+#  ansible-playbook -i inventories/development ./playbooks/configure.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/configure.yml -e target_hosts=vm1
+#
+# TROUBLE shooting:
+#   If there was a failure then the failed message hints what can be wrong, the common problems 
+#    it can be repos, crts etc.. some examples of fixes/recovery.
+#
+#     ansible -i inventory/dev all -m command -a "sudo cp /usr/share/rhn/RHNS-CA-CERT /usr/share/rhn/RHN-ORG-TRUSTED-SSL-CERT"
+#
+#     ansible -i inventory/dev all -u tcdmin -m command -a "sudo subscription-manager repos --enable=rhel-7-server-extras-rpms"
+#
+#
+---
+- hosts: "{{ target_hosts | default('all')}}"
+  name: Prepare and configure target hosts per installation guide
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    - name: Exit early if a scheduled reboot file exists
+      stat: path=/run/systemd/shutdown/scheduled
+      register: reboot_scheduled_exists
+
+    - name: Target is scheduled for reboot! rerun this play when target ready.
+      meta: end_play
+      when: 
+        - reboot_scheduled_exists is defined
+        - reboot_scheduled_exists.stat.exists | default(false)
+
+    - name: Reconfigure dpkg might be necessary before next install for Debian
+      command: "dpkg --configure -a"
+      when: ansible_os_family == "Debian"
+
+    - name: "Get list of ip's from docker_vms group inventory host names"
+      set_fact:
+        host_ips: "{{ groups.docker_vms | ipv4('address') | list }}"
+      when: groups.docker_vms | length !=0
+
+    - name: Check the inventory does not have an IP for docker vm group
+      fail:
+        msg: "Failed: One or more of docker_vms group has an IP as a hostname!"
+      when:
+        - groups.docker_vms | length !=0
+        - host_ips | length > 0
+
+    - name: Install generic necessary packages and tools.
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest"
+      with_items:
+        - nano
+        - systemd
+        - dbus
+        - sudo
+        - parted
+        - tzdata
+        - ntp
+        - lvm2
+        - ca-certificates
+        - python-setuptools
+        - curl
+        - tar
+        - bzip2
+        - rsync
+
+    - name: Install necessary packages and tools for Debian
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest update_cache=yes"
+      with_items:
+        - cron
+        - dnsutils
+        - python-semanage
+        - thin-provisioning-tools
+        - apt-transport-https
+        - gnupg2
+        - software-properties-common
+        - mtr-tiny
+        - apache2-utils
+      when: ansible_os_family == "Debian"
+
+    - name: Install necessary packages and tools for Debian
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest update_cache=yes"
+      with_items:
+        - gnupg-curl
+      when: ansible_os_family == "Debian" and ansible_distribution_version < 9
+
+    - name: Install necessary packages and tools for RedHat Family
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest"
+      with_items:
+        - cronie
+        - which
+        - bind-utils
+        - policycoreutils-python
+        - device-mapper-persistent-data
+        - yum-utils
+        - httpd-tools
+      when: ansible_os_family == "RedHat"
+
+    - name: Install useful tools
+      action: "{{ ansible_pkg_mgr }} name={{ item }} state=latest"
+      with_items:
+        - sqlite
+        - unzip
+        - lsof
+        - mc
+        - mlocate
+        - mtr
+        - socat
+        - net-tools
+        - traceroute
+        - nload
+        - iftop
+        - fio
+        - fping
+        - nethogs
+        - httpie
+        - jq
+        - tree
+        - psmisc
+        - w3m
+        - httpd-tools
+        - ncdu
+        - lftp
+        - cadaver
+        - pv
+        - inxi
+      when: install_useful_tools | default(false)
+
+    - name: Check for internet connection
+      uri:
+        url: http://google.com
+        return_content: no
+      register: result
+      until: result.status == 200
+      ignore_errors: yes
+      changed_when: no
+      failed_when: false
+      retries: 3
+      delay: 10
+      when: docker.check_internet
+
+    - block:
+
+        - name: Installing important dependencies
+          easy_install:
+            name: "{{ item }}"
+          with_items:
+            - pip
+            - httplib2
+
+        - name: Installing additional tools
+          pip:
+            name: "{{ item }}"
+            state: present
+          with_items:
+            - httpie-jwt-auth
+            - passlib
+            - pep8
+
+      when:
+        - docker.check_internet
+        - result is defined
+        - result.status == 200
+
+    - name: Update locals
+      command: 'localectl set-locale LANG="en_US.UTF-8"'
+      ignore_errors: yes
+
+    # check if ntp is active
+    # ntpstat returns 0 if clock is synchronised.
+    # ntpstat returns 1 if clock is not synchronised.
+    # ntpstat returns 2 if clock state is indeterminant, for example if ntpd is not contactable
+    - name: Verify time synchronization
+      command: ntpstat
+      register: ntpstat
+      changed_when: no
+      failed_when: false
+      ignore_errors: yes
+
+    - name: Install and start ntp if does not exists
+      include_role:
+        name: geerlingguy.ntp
+      vars:
+        ntp_manage_config: true
+      when:
+        - ansible_virtualization_type != "openvz"
+        - ntpstat.rc is defined
+        - ntpstat.rc == 2
+        - ntp_timezone != ""
+        - ntp_sync_with != ""
+
+    - name: "Sync the clock if its not in sync with {{ ntp_sync_with }}"
+      block:
+
+        - name: Stop ntpd
+          service:
+            name: ntpd
+            state: stopped
+
+        - name: Sync the clock to the nl ntp pool
+          command: "ntpdate {{ ntp_sync_with }}"
+          changed_when: yes
+          when: ntp_sync_with is defined
+
+        - name: Start ntpd after syncing
+          service:
+            name: ntpd
+            enabled: yes
+            state: started
+
+      when:
+        - ntpstat.rc is defined
+        - ntpstat.rc == 1
+        - ansible_virtualization_type != "openvz"
+
+
+    - name: Update the environment settings and setup hosts
+      include_role:
+        name: sysctl_hosts
+
+    - name: Configure the package manager
+      lineinfile:
+        dest: /etc/yum.conf
+        regexp: '{{ item.regexp }}'
+        line: '{{ item.line }}'
+        state: present
+        create: true
+      with_items:
+        - regexp: '^installonly_limit='
+          line: "installonly_limit=2"
+      when: ansible_os_family == "RedHat"
+
+    - name: Add docker vm hosts
+      lineinfile:
+        dest: /etc/hosts
+        line: '{{ hostvars[item].ansible_default_ipv4.address }} {{item}}'
+        state: present
+      with_items: "{{ groups.docker_vms }}"
+      when:
+        - groups.docker_vms | length !=0
+        - item != inventory_hostname
+        - play_hosts == "provision"

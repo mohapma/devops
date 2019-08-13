@@ -1,0 +1,6 @@
+[rhel7]
+enabled=0
+gpgcheck=0
+sslverify=0
+name=7Server
+baseurl=https://194.42.63.195/repos/7Server/os/x86_64/

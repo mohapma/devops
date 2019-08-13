@@ -1,0 +1,4 @@
+---
+- name: "Configure HTPP proxy for  Docker"
+  include: "configure_proxy.yml"
+

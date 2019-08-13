@@ -1,0 +1,23 @@
+---
+- name: reload sysctl.conf
+  command: /sbin/sysctl -p
+
+- name: flush routes
+  command: /sbin/sysctl -w net.ipv4.route.flush=1
+
+- name: restart hostname
+  service:
+    name: "hostname{{ '.sh' if (ansible_distribution_release == 'wheezy') else '' }}"
+    state: restarted
+  when:
+    - ansible_os_family != 'RedHat'
+    - ansible_service_mgr != 'systemd'
+
+- name: restart systemd-logind
+  service:
+    name: systemd-logind
+    state: restarted
+  when:
+    - ansible_os_family != 'RedHat'
+    - ansible_service_mgr == 'systemd'
+

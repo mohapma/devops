@@ -1,0 +1,25 @@
+##### TODO
+
+High:
+========
+
+
+Medium:
+========
+
+- handle when remote does not have internet connection Docker easy_install pip ...
+
+- fail if this does not succeed
+
+		docker login registry.tecnotree.com
+	or
+		docker pull registry.tecnotree.com/rancher/server:latest	
+		
+low:
+========
+
+- docker storage only configured for [ docker, docker-ce, docker-engine] Should add other versions and check outcome
+
+- check install for debian based
+	https://docs.docker.com/engine/installation/linux/docker-ce/debian/#install-using-the-repository
+

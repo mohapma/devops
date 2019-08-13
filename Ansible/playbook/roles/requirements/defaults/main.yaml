@@ -1,0 +1,24 @@
+---
+##################### requirements variables
+
+# ram in megabytes -200
+min_ram: 800
+min_cores: 1
+
+# some services may not be installed already and differ from distro to another
+stop_disable_service_list:
+  - firewalld
+  - httpd
+  - apache2
+  - sendmail
+  - postfix
+  - exim4
+  - rpcbind
+  - nfs-common
+  - dnsmasq
+
+
+
+
+
+

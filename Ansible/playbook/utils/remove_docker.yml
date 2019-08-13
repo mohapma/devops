@@ -1,0 +1,80 @@
+---
+- hosts: "{{ target_hosts | default('docker_vms')}}"
+  name: A utility play
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    - name: "Is docker already installed?"
+      command: docker -v
+      register: docker_version
+      ignore_errors: yes
+      failed_when: false
+
+    - block:
+
+        - name: Stop and disable Docker
+          service:
+            name: "{{ item }}"
+            enabled: no
+            state: stopped
+          ignore_errors: yes
+          with_items: [docker, docker-engine ]
+
+        - name: Uninstall previous docker and ignore package if not exists
+          action: "{{ ansible_pkg_mgr }} name={{ item }} state=absent"
+          with_items: [docker, docker-ce, docker-engine, docker.io, docker-common, docker-selinux]
+          ignore_errors: yes
+          failed_when: false
+
+      when: docker_version is defined and docker_version.rc ==0
+
+    - name: Clean previous docker related dirs and files
+      file:
+        state: absent
+        path: "{{ item }}"
+      ignore_errors: yes
+      with_items:
+        - "/var/lib/docker"
+        - "/etc/docker/daemon.json"
+
+    - name: "Get source mount point /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }} if exists."
+      command: "findmnt -nfo SOURCE /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+      ignore_errors: yes
+      register: mpoint
+
+    - name: "Umount different docker paths"
+      command: "umount {{ item }}"
+      ignore_errors: yes
+      with_items:
+        - "/var/lib/docker"
+        - "/dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+
+    - name: "Umount different docker paths"
+      command: "umount {{ mpoint.stdout_lines[0] }}"
+      ignore_errors: yes
+      when:
+        - mpoint.rc==0
+        - "{{ mpoint.stdout_lines | length == 1 }}"
+
+    - name: "Get source mount point /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }} if exists."
+      command: "findmnt -nfo SOURCE /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+      ignore_errors: yes
+      register: mpoint
+
+    - name: Remove the previous mount point in fstab
+      lineinfile:
+        dest: /etc/fstab
+        regexp: "{{ mpoint.stdout_lines[0] }}"
+        state: absent
+      ignore_errors: yes
+      when:
+        - mpoint.rc==0
+        - "{{ mpoint.stdout_lines | length == 1 }}"
+
+    - name: Perform a mount to clear previous mount points
+      command: "mount -a"
+      args:
+        warn: no
+
+

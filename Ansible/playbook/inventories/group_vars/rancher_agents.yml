@@ -1,0 +1,4 @@
+---
+#################### rancher-agents
+
+min_agent_count: 3

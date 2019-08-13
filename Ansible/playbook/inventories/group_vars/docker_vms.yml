@@ -1,0 +1,30 @@
+---
+docker:
+  version: "docker-ce"
+  group_members: [ ]
+  start_docker: true
+  check_internet: false
+  storage:
+    type: "devicemapper"
+    block_device: "/dev/sdb"
+    vg_name: "docker-vg"
+    lv_name: "docker_storage"
+    filesystem: "xfs"
+
+# uncomment then next line and add what is necessary
+#extra_daemon_options:
+#  "insecure-registries": [ "registry.tecnotree.com" , "proxy-registry.tecnotree.com" ]
+#  "hosts": [ "unix:///var/run/docker.sock", "tcp://0.0.0.0:2873"]
+
+# --------------------------------------- DO NOT uncomment below it is only for documentation
+# docker:
+#   version: "docker-ce"             # can be [ docker-ce, docker-engine, docker ] or your own docker-17.06 etc..
+#   group_members: [ "tecnotree" ]   # [ tecnotree, madmin ] user(s) to add to docker group, ignored if user does not exists or empty
+#   start_docker: true               # start docker at end of play
+#   check_internet: false            # if remote does not have internet connection then set to false, this saves some time ~ 1 min per host
+#   storage:
+#     type: "devicemapper"           # [ devicemapper, overlay2, default ] # NOTE: default will not use next keys
+#     block_device: "/dev/sdb"       # e.g: /dev/sdb , /dev/sdb1 leave empty if using an existing logical volume on remote
+#     vg_name: "dvg"              # the volume group name to use or create
+#     lv_name: "dlv"              # the logical volume name added to the vg_name
+#     filesystem: "xfs"              # [ xfs, ext4 ] recommended file system

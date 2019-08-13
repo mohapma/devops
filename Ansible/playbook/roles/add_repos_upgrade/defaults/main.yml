@@ -1,0 +1,17 @@
+force_reboot: no
+
+add_specific_repos: false
+
+#Fedora:
+
+#Ubuntu:
+
+#Debian:
+
+#OracleLinux:
+
+CentOS:
+  - epel-release
+
+RedHat:
+  - rhel-7-server-extras-rpms

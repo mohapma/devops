@@ -1,0 +1,35 @@
+---
+- hosts: "{{ target_hosts }}"
+  become: yes
+  tasks:
+
+    - name: "Check if /etc/docker/daemon.json exists"
+      stat: path="/etc/docker/daemon.json"
+      register: daemon_exists
+
+    - name: Fail if file does not exists
+      fail:
+        msg: "Failed: /etc/docker/daemon.json does not exist"
+      when: not daemon_exists.stat.exists
+
+    - name: update daemon file log driver
+      json_file:
+        dest: "/etc/docker/daemon.json"
+        key: 'log-driver'
+        value: 'json-file'
+
+    - name: update daemon file log-opts
+      json_file:
+        dest: "/etc/docker/daemon.json"
+        key: 'log-opts.max-size'
+        value: '10m'
+
+    - name: update daemon file log-opts
+      json_file:
+        dest: "/etc/docker/daemon.json"
+        key: 'log-opts.max-file'
+        as_string: true
+        value: 3
+
+    - name: Restart docker dockerd
+      shell: "kill -SIGHUP $(pidof dockerd)"

@@ -1,0 +1,37 @@
+# Play Name: finalize
+# Version: 1.0
+#
+# Execution Order: Last
+#
+# Description:
+#   This play configures the target host(s) by:
+#     - add docker_vms group to each vm host file
+#
+# Variables:
+#   target_hosts: defaults to all, can be used to play on a host or group of hosts
+#
+# Example usage:
+#
+#  ansible-playbook -i inventories/development -u sudousr -k -K ./playbooks/finalize.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/finalize.yml
+#  ansible-playbook -i inventories/development ./playbooks/finalize.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/finalize.yml -e target_hosts=vm1
+#
+---
+- hosts: docker_vms
+  name: A play to finalize the installation
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    - name: Add docker vm hosts except to host to itself
+      lineinfile:
+        dest: /etc/hosts
+        line: '{{ hostvars[item].ansible_default_ipv4.address }} {{item}}'
+        state: present
+      with_items: "{{ groups.docker_vms }}"
+      when:
+        - item is defined
+        - item != inventory_hostname
+        - item in groups.docker_vms
+        - hostvars[item] is defined

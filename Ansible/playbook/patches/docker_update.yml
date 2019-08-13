@@ -1,0 +1,10 @@
+---
+- hosts: "{{ target_hosts }}"
+  become: yes
+  tasks:
+
+    - name: "Update {{ docker.version }} from repo"
+      action: "{{ ansible_pkg_mgr }} name={{ docker.version }} state=latest"
+
+    - name: Restart docker dockerd
+      shell: "kill -SIGHUP $(pidof dockerd)"

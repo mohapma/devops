@@ -1,0 +1,41 @@
+---
+- name: RedHat family add specific repos
+  block:
+
+    - name: Add tecnotree repo for RedHat
+      yum_repository:
+        name: rhel7
+        description: Red Hat Enterprise Linux 7 Server (RPMs)
+        baseurl: http://subtitle.tecnotree.com/rhel/7Server/os/x86_64/
+        enabled: 1
+        gpgcheck: 0
+      when: ansible_distribution == "RedHat"
+
+    - name: Add docker-ce repo
+      yum_repository:
+        name: docker-ce
+        description: docker-ce stable
+        baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+        enabled: 1
+        gpgcheck: 1
+        gpgkey: https://download.docker.com/linux/centos/gpg
+      when: ansible_distribution == "RedHat"
+
+  when:
+    - add_specific_repos | default(false)
+    - ansible_os_family == "RedHat"
+
+- name: RedHat family yum clean and update
+  block:
+
+    - name: Clean yum parts
+      command: "{{ ansible_pkg_mgr }} clean all"
+      args:
+        warn: no
+
+    - name: Remove yum cache dir
+      file:
+        path: /var/cache/yum
+        state: absent
+
+  when: ansible_os_family == "RedHat"

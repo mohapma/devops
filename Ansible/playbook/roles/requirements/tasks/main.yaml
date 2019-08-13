@@ -1,0 +1,18 @@
+# check for requirments and disable unnecessary services
+---
+- name:  Requirements | Set facts
+  set_fact:
+    max_cores: "{{ ansible_processor_cores * ansible_processor_count }}"
+
+- name: Requirements Check
+  assert:
+    that:
+      - ansible_memory_mb.real.total >= {{ min_ram }}
+      - "{{ max_cores }}|int >= {{ min_cores }}"
+    msg: "Requirements check failed!"
+
+- name: "Stop and disable un-necessary services if exists"
+  service: name={{item}} state=stopped enabled=no
+  ignore_errors: yes
+  failed_when: false
+  with_items: "{{ stop_disable_service_list }}"

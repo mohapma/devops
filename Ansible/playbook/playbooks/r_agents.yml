@@ -1,0 +1,115 @@
+# Play Name: r_agents.yml
+# Version: 1.0
+#
+# Execution Order: 5
+#
+# Description:
+#   This play installs rancher agents and adds the docker_vms hosts to the
+#    created rancher agents " conatiners "
+#
+# Variables:
+#   target_hosts: defaults to all, can be used to play on a host or group of hosts
+#
+# Group Variables:
+#   ../group_vars/rancher_agents.yml
+#
+# Role Dependencies:
+#
+#
+# Example usage:
+#
+#  ansible-playbook -i inventories/development -u tecnotree -k -K ./playbooks/r_agents.yml
+#  ansible-playbook -i inventories/development -u tecnotree ./playbooks/r_agents.yml
+#  ansible-playbook -i inventories/development ./playbooks/r_agents.yml
+#  ansible-playbook -i inventories/development -u tecnotree ./playbooks/r_agents.yml -e target_hosts=vm1
+#
+#
+---
+- name: Get docker vm hosts
+  hosts: "docker_vms"
+  become: no
+  gather_facts: yes
+  tasks:
+
+    - name: Create a dict of docker_vms hosts
+      set_fact:
+        host_ip_v: "{{ host_ip_v|default({}) | combine( {item: hostvars[item].ansible_default_ipv4.address } ) }}"
+      with_items: "{{ groups.docker_vms }}"
+
+    - name: Get rancher server ip
+      set_fact:
+        rancher_server_ip: "{{ hostvars[rancher_server].ansible_default_ipv4.address }}"
+
+- name: Setup the rancher agents
+  hosts: "rancher_agents"
+  become: no
+  gather_facts: yes
+  any_errors_fatal: true
+  ignore_errors: "{{ ansible_check_mode }}"
+  tasks:
+
+    - name: Ping target hosts to make sure they are reachable
+      ping:
+
+#    - name: Validate number of Rancher agents hosts
+#      fail: msg="The number of rancher agents must be {{ min_agent_count }} or more!"
+#      when: groups['rancher_agents'] | length | int < min_agent_count | default(1)
+
+    - name: Prepare dict of hosts
+      set_fact:
+        server_hosts_v: "{{ server_hosts_v|default({}) | combine( {item.alias: item.ip } ) }}"
+      with_items: "{{ external_hosts_list }}"
+    
+    - name: Get the default project id
+      uri:
+        url: "http://{{ rancher_server_ip }}:{{ rancher_server_port }}/v1/projects"
+        method: GET
+        status_code: 200
+        user: "{{ server_api_access_key | default(omit)}}"
+        password: "{{ server_api_secret_key | default(omit)}}"
+        force_basic_auth: yes
+        return_content: yes
+      register: project_id
+
+    - name: Return the registration token URL of Rancher server
+      uri:
+        url: "http://{{ rancher_server_ip }}:{{ rancher_server_port }}/v1/registrationtokens?projectId={{ project_id.json['data'][0]['id'] }}"
+        method: POST
+        status_code: 201
+        user: "{{ server_api_access_key | default(omit)}}"
+        password: "{{ server_api_secret_key | default(omit)}}"
+        force_basic_auth: yes
+        return_content: yes
+      register: rancher_token_url
+
+    - name: Return the registration URL of Rancher server
+      uri:
+        url: "{{ rancher_token_url.json['links']['self'] }}"
+        method: GET
+        user: "{{ server_api_access_key | default(omit)}}"
+        password: "{{ server_api_secret_key | default(omit)}}"
+        force_basic_auth: yes
+        return_content: yes
+      register: rancher_token
+
+    - name: Check if the rancher_agent is running
+      command: docker ps -a
+      register: containers
+      changed_when: false
+
+    - name: Register the Host machine with the Rancher server
+      docker_container:
+        name: rancher_agent
+        image: "{{ rancher_token.json['image'] }}"
+        privileged: yes
+        etc_hosts: "{{ server_hosts_v |combine(host_ip_v) }}"
+        detach: True
+        state: started
+        env:
+          CATTLE_AGENT_IP: "{{ ansible_default_ipv4.address }}"
+          CATTLE_HOST_LABELS: "{{ cattle_host_labels | default(omit) }}"
+        volumes:
+          - /var/run/docker.sock:/var/run/docker.sock
+          - /var/lib/rancher:/var/lib/rancher
+        command: "{{ rancher_token.json['registrationUrl'] }}"
+      when: not ( containers.stdout |  search("rancher_agent") )

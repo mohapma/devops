@@ -1,0 +1,43 @@
+# Play Name: configure_proxy.yml
+# Version: 1.0
+#
+# Execution Order: 3
+#
+# Description:
+#   This play configures http proxy for docker
+#
+# Variables:
+#   target_hosts: defaults to all, can be used to play on a host or group of hosts
+#
+# Group Variables:
+#   ../group_vars/docker_vms.yml
+#
+# Play Dependencies:
+#   remove_docker.yml
+#
+# Role Dependencies:
+#   apigw.docker-ce
+#   apigw.docker-storage-setup
+#   configure-http-proxy
+#
+# Example usage:
+#
+#  ansible-playbook -i inventories -u tecnotree -k -K ./playbooks/configure_proxy.yml
+#  ansible-playbook -i inventories -u tecnotree ./playbooks/configure_proxy.yml
+#  ansible-playbook -i inventories ./playbooks/configure_proxy.yml
+#  ansible-playbook -i inventories -u tecnotree ./playbooks/configure_proxy.yml -e target_hosts=vm1
+#
+#
+---
+- hosts: "{{ target_hosts | default('docker_vms')}}"
+  gather_facts: yes
+  become: yes
+  tasks:
+
+    - name: Check the inventory is part of the docker_vms group
+      fail:
+        msg: "Failed: One or more vms needs to be in docker_vms group for this playbook to work properly!"
+      when: inventory_hostname not in groups.docker_vms
+    - name: Configure HTTP proxy for Docker
+      include_role:
+        name: configure-http-proxy

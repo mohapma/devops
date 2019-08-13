@@ -1,0 +1,17 @@
+# kernel can be upgraded so its best to start clean so reboot
+- name: Debian or Ubuntu Check if a reboot is required
+  command: "[ -f /var/run/reboot-required ]"
+  failed_when: False
+  register: reboot_required
+  changed_when: reboot_required.rc == 0
+  notify: reboot
+  when: ansible_distribution == 'Debian' or ansible_distribution == 'Ubuntu'
+
+- name: RedHat family Check if a reboot is required
+  command: LAST_KERNEL=$(rpm -q --last kernel | perl -pe 's/^kernel-(\S+).*/$1/' | head -1);CURRENT_KERNEL=$(uname -r); if [ $LAST_KERNEL != $CURRENT_KERNEL ]; then echo 1; else echo 0; fi
+  register: reboot_required
+  changed_when: "reboot_required.rc == 1"
+  ignore_errors: true
+  notify: reboot
+  when: ansible_os_family == "RedHat" and reboot_required.changed
+

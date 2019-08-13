@@ -1,0 +1,17 @@
+[rancher_servers]
+rancherserver01 ansible_host=10.2.4.218
+
+[rancher_agents]
+rancherserver01 ansible_host=10.2.4.218
+clusternode01 ansible_host=10.2.4.219
+
+[docker_vms:children]
+rancher_servers
+rancher_agents
+
+[rancher_agents:vars]
+cattle_host_labels='apigw=true&cassandra=true'
+
+[all:vars]
+rancher_server=rancherserver01
+rancher_server_port=8080

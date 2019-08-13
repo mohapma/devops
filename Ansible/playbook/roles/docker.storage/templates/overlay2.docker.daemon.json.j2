@@ -1,0 +1,15 @@
+{
+  "registry-mirror": "https://proxy-registry.tecnotree.com",
+  "log-driver": "json-file",
+  "log-opts": {
+    "max-size": "10m",
+    "max-file": "3"
+  },
+  "live-restore": true,
+  "storage-driver": "overlay2"
+{%if extra_daemon_options is defined %}
+    {% for key, value in extra_daemon_options.iteritems() %}
+    ,"{{key}}": {{value | to_json }}
+    {% endfor %}
+{% endif %}
+}

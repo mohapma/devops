@@ -1,0 +1,79 @@
+# Play Name: prerequisites.yml
+# Version: 1.0
+#
+# Execution Order: 1
+#
+# Description:
+#   This play checks the target host(s) for hw requirements, adds repos and performs os upgrade
+#
+# Variables:
+#   target_hosts: defaults to all, can be used to play on a host or group of hosts
+#   force_reboot: defaults to no, passed to role to force reboot
+#
+# Role Dependencies:
+#   apigw.add_repos_upgrade
+#   apigw.reboot
+#
+# Example usage:
+#
+#  ansible-playbook -i inventories/development -u sudousr -k -K ./playbooks/prerequisites.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/prerequisites.yml
+#  ansible-playbook -i inventories/development ./playbooks/prerequisites.yml
+#  ansible-playbook -i inventories/development -u sudousr ./playbooks/prerequisites.yml -e target_hosts=vm1
+#
+#
+---
+- hosts: "{{ target_hosts | default('all')}}"
+  name: A playbook that calls different roles to check and prepare target hosts
+  gather_facts: yes
+  become: yes
+  tasks:
+      
+    - name: Check for requirments and disable unnecessary services
+      include_role:
+        name: requirements
+
+    - name: Add repos and upgrade
+      include_role:
+        name: add_repos_upgrade
+      tags: add_repos_upgrade
+
+    - name: Check if selinux config file exists
+      stat: path=/etc/selinux/config
+      register: se_config_exists
+      ignore_errors: true
+      when:
+        - disable.SElinux
+
+    - name: Disable SElinux
+      selinux:
+       state: disabled
+      when:
+        - disable.SElinux
+        - se_config_exists.stat.exists
+
+    - name: Reboot if forced ... using 1 minute delay before rebooting
+      command: shutdown -r +1
+      async: 0
+      poll: 0
+      ignore_errors: true
+      when: force_reboot | default(no)
+
+    - name: Reboot if needed
+      include_role:
+        name: reboot
+      when: not force_reboot
+
+    - name: Check scheduled reboot file exists
+      stat: path=/run/systemd/shutdown/scheduled
+      register: reboot_scheduled_exists
+      no_log: yes
+      failed_when: false
+      ignore_errors: true
+
+    - name: Wait 2 minutes until host reboots
+      pause:
+        minutes: 2
+      failed_when: false
+      ignore_errors: true
+      when: reboot_scheduled_exists.stat.exists or force_reboot

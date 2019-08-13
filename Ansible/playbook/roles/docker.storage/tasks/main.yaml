@@ -1,0 +1,69 @@
+---
+- block:
+
+    - name: "Storage Check Fails :: Kernel support for overlay2"
+      fail:
+        msg: >
+          kernel Version does not support overlay2
+          [ {{ ansible_kernel }} < {{ "4.0.0" }} ]
+          Resolve this issue before continuing!
+      when:
+        - ansible_kernel | version_compare("4.0.0", '<')
+        - docker.storage.type == "overlay2"
+
+    - name: "Storage Check Fails :: Is docker storage type supported"
+      fail:
+        msg: "The docker storage type must be in ( {{ docker_acceptable_storage_driver }} )"
+      when: docker.storage.type not in docker_acceptable_storage_driver
+
+    - name: "Storage Check Fails :: Is docker storage type allowed for a supported docker version"
+      fail:
+        msg: "The docker storage: overlay2 is not supported with docker only with docker-ce"
+      when:
+        - docker.storage.type == "overlay2"
+        - docker.version == "docker"
+
+    - name: "Get device {{ docker.storage.block_device }} info"
+      parted: device="{{ docker.storage.block_device }}" unit=MiB
+      when: 
+        - docker.storage.block_device !=""
+        - docker.storage.type != "default"
+
+    - name: "Get volume /dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }} info"
+      parted: device="/dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}" unit=MiB
+      when:
+        - docker.storage.block_device ==""
+        - docker.storage.type != "default"
+
+  when: check_storage_fails is defined
+
+- block:
+
+    - name: "Configure device storage for overlay2"
+      include_tasks: overlay2_device_storage.yml
+      when: 
+        - docker.storage.block_device !=""
+        
+    - name: "mounting for overlay2"
+      mount:
+        path: "/var/lib/docker"
+        src: "/dev/{{ docker.storage.vg_name }}/{{ docker.storage.lv_name }}"
+        fstype: "{{ docker.storage.filesystem }}"
+        state: "mounted"
+      when: 
+        - docker.storage.block_device ==""
+
+  when:
+    - docker.storage.type == "overlay2"
+    - docker_options_template is defined
+
+
+- name: "Configure docker daemon.json"
+  template:
+    src: "templates/{{ docker.storage.type }}.docker.daemon.json.j2"
+    dest: /etc/docker/daemon.json
+    force: yes
+    owner: root
+    group: root
+    mode: 0644
+  when: docker_options_template is defined

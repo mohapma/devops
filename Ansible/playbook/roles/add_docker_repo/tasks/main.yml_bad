@@ -1,0 +1,22 @@
+---
+- name: Add Docker and other specific repos
+  block:
+
+    - name: Add subtitle repo for RedHat
+      yum_repository:
+        name: rhel7
+        description: Red Hat Enterprise Linux 7 Server (RPMs)
+        baseurl: http://subtitle.tecnotree.com/rhel/7Server/os/x86_64/
+        enabled: 1
+        gpgcheck: 0
+
+    - name: Add Docker repo
+      yum_repository:
+        name: docker-ce
+        description: Docker-ce repo stable
+        baseurl: https://download.docker.com/linux/centos/7/$basearch/stable
+        enabled: 1
+        gpgcheck: 1
+        gpgkey: https://download.docker.com/linux/centos/gpg
+
+  when: ansible_distribution == "Redhat"
