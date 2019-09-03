@@ -40,6 +40,14 @@ $ kubectl get pods --namespace  dap -o=json | jq -c '.items[] | {name: .metadata
  
  #######################
  
+ kubectl create secret docker-registry regsecret \
+--docker-server=docker.example.com \
+--docker-username=kube \
+--docker-password=PW_STRING \
+--docker-email=my@email.com \
+--namespace mynamespace
+--dry-run -oyaml
+
 Leave a comment
 
 Attach files by dragging & dropping, selecting or pasting them.
