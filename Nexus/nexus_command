@@ -1,0 +1,7 @@
+######Push maven repository######
+mvn deploy:deploy-file -DgroupId=com.oracle -DartifactId=ucp -Dversion=11.2.0.3.0 -Dfile=ucp-11.2.0.3.0.jar -DrepositoryId=tt-nexus -Durl=https://nexus.tecnotree.com/repository/maven-3rd-party/ -Dpackaging=jar -DgeneratePom=true
+mvn deploy:deploy-file -DgroupId=com.tecnotree.eia.ws02 -DartifactId=ws02-esb -Dversion=X.Y.Z -Dfile=ws02-esb-X.Y.Z.tar.gz -Dpackaging=tar.gz -DrepositoryId=tt-nexus -Durl=https://nexus.tecnotree.com/repository/raw-3rd-party/
+
+
+####Push raw file######
+curl -v -u <your-user-name>:<your-password> --upload-file rancher-linux-amd64-v2.2.0.tar.gz  "https://nexus.tecnotree.com/repository/raw-3rd-party/rancher/cli/v2.2.0/rancher-linux-amd64-v2.2.0.tar.gz"
