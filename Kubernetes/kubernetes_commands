@@ -17,13 +17,24 @@ $ kubectl delete --all namespaces
 $ kubectl describe svc prometheus
 $ kubectl top pod --namespace dap --> resources usages
 $ kubectl get nodes | egrep '(^NAME|NotReady)' --> 
-$ kubectl delete pods <pod> --grace-period=0 --force  --> delete a Pod forcibly
+$ kubectl delete pods <pod> -n dap-infra --grace-period=0 --force  --> delete a Pod forcibly
 $ kubectl delete node --all  --> delete all nodes
 $ kubectl get deployment my-dep   --> List a particular deployment
 $ kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10  --> Horizontal Pod Autoscaler
 $ kubectl get hpa  --> check the current status of autoscaler by running
 $ kubectl get pods --namespace  dap -o=json | jq -c '.items[] | {name: .metadata.name, namespace: .metadata.namespace, claimName: .spec |  select( has ("volumes") ).volumes[] | select( has ("persistentVolumeClaim") ).persistentVolumeClaim.claimName }'
- 
+
+##########Jobs######
+kubectl get jobs -n dap
+
+####Check resource quota###
+##########################
+kubectl describe quota --namespace=dap
+kubectl get pods -n dap -o custom-columns=NAME:.metadata.name,CPU:.spec.containers[].resources.limits.cpu
+
+#####Update image name####
+kubectl --namespace=dap set image deployment/dap-management-service(wl name) management-service(container name)=imagename
+
  
  #####Volume#####
  kubectl get pv
@@ -37,9 +48,14 @@ $ kubectl get pods --namespace  dap -o=json | jq -c '.items[] | {name: .metadata
  
  kubectl get pvc -n dap
  kubectl edit pvc data-mariadb-mariadb-0 -n dap
+ kubectl delete pvc pvc-126e360b-d95c-11e9-b988-005056867f20  --> delete pvc
  
  #######################
  
+ ######### Metrics api####
+ kubectl get --raw "/apis/metrics.k8s.io/v1beta1/nodes" | jq
+ 
+ ###########
  kubectl create secret docker-registry regsecret \
 --docker-server=docker.example.com \
 --docker-username=kube \
@@ -47,36 +63,6 @@ $ kubectl get pods --namespace  dap -o=json | jq -c '.items[] | {name: .metadata
 --docker-email=my@email.com \
 --namespace mynamespace
 --dry-run -oyaml
-
-Leave a comment
-
-Attach files by dragging & dropping, selecting or pasting them.
-Assignees
-No one assigned
-Labels
-kind/feature
-sig/cli
-sig/storage
-Projects
-None yet
-Milestone
-No milestone
-Notifications
-Customize
-You’re not receiving notifications from this thread.
-12 participants
-@dsalamancaMS
-@gnufied
-@krmayankk
-@clandry94
-@k8s-ci-robot
-@feiskyer
-@pradeep-kaloori
-@azzaka
-@porrascarlos802018
-@amanjain08
-@Moshem123
-@silenceshell
 
 $ helm ls --> see the helm repo list
 $ helm repo update --> helm repo update
