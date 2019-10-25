@@ -52,6 +52,16 @@ kubectl --namespace=dap set image deployment/dap-management-service(wl name) man
  
  #######################
  
+ ###### kube exec ######
+ 
+ kubectl exec zeebe-0 -c zeebe -n dap date --> see the date 
+ kubectl exec -ti <pod-name> /bin/bash --> TTY and run /bin/bash from pod
+ kubectl exec -it sss-pod-four  echo "hi" >> /mnt/sss/testnew.txt  --> to write contents to a file in the pod
+ kubectl exec zeebe-0 -c zeebe -n dap -- nslookup --> see the load balance
+ kubectl exec -ti dap-generic-script-service -- nslookup kubernetes.dap
+ 
+ ##########################
+ 
  ######### Metrics api####
  kubectl get --raw "/apis/metrics.k8s.io/v1beta1/nodes" | jq
  
