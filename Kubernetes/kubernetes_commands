@@ -23,6 +23,8 @@ $ kubectl get deployment my-dep   --> List a particular deployment
 $ kubectl autoscale deployment php-apache --cpu-percent=50 --min=1 --max=10  --> Horizontal Pod Autoscaler
 $ kubectl get hpa  --> check the current status of autoscaler by running
 $ kubectl get pods --namespace  dap -o=json | jq -c '.items[] | {name: .metadata.name, namespace: .metadata.namespace, claimName: .spec |  select( has ("volumes") ).volumes[] | select( has ("persistentVolumeClaim") ).persistentVolumeClaim.claimName }'
+##############
+kubectl scale deployment camunda-operate -n dap-infra --replicas=0
 
 ##########Jobs######
 kubectl get jobs -n dap
@@ -30,7 +32,7 @@ kubectl get jobs -n dap
 ####Check resource quota###
 ##########################
 kubectl describe quota --namespace=dap
-kubectl get pods -n dap -o custom-columns=NAME:.metadata.name,CPU:.spec.containers[].resources.limits.cpu
+kubectl get pods -n dap -o custom-columns=NAME:.metadata.name,RCPU:.spec.containers[].resources.requests.cpu,LCPU:.spec.containers[].resources.limits.cpu
 
 #####Update image name####
 kubectl --namespace=dap set image deployment/dap-management-service(wl name) management-service(container name)=imagename
@@ -61,6 +63,13 @@ kubectl --namespace=dap set image deployment/dap-management-service(wl name) man
  kubectl exec -ti dap-generic-script-service -- nslookup kubernetes.dap
  
  ##########################
+ 
+ ###### Taints and Tolerations#########
+ 
+ kubectl taint nodes node1 key=value:NoSchedule/NoExecute/PreferNoSchedule
+ kubectl taint nodes nodename dedicated=groupName:NoSchedule
+ ubectl taint nodes nodename special=true:NoSchedule  --> This can be done by tainting the nodes that have the specialized hardware
+ 
  
  ######### Metrics api####
  kubectl get --raw "/apis/metrics.k8s.io/v1beta1/nodes" | jq
@@ -129,8 +138,14 @@ $kubectl uncordon <nodename>
 
 ++++++++++++Manual Install Promithious++++++++++++
 
+############# slove the tiller issue **********
+###################################
 
-***************** slove the tiller issue **********
+kubectl create serviceaccount --namespace kube-system tiller
+kubectl create clusterrolebinding tiller-clusterrolebinding --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
+kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
+
+
 export HELM_HOST=localhost:44134
 
 NOTES:

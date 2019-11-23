@@ -61,7 +61,7 @@ docker inspect <container_name>  --> See the container details along ipdetails
 docker container inspect <container_name> | grep Started  --> container start time
 
 ++++++docker's default /var/lib/docker to another directory++++++
-+++++++++++++++++++++++++++++++++++++++++++
+##########################################
 vi /lib/systemd/system/docker.service
 FROM:
 ExecStart=/usr/bin/docker daemon -H fd://
@@ -79,7 +79,7 @@ docker push dev-docker-registry.tecnotree.com/digital-cbs/revenue-ui:v1.0.0
 
 
 Command to extend the lvm parition for docker++++++++
-++++++++++++++++++++++++
+#################################################
 sudo lvextend -l +8000 /dev/ubuntu-vg/ubuntu-lv
 sudo resize2fs /dev/ubuntu-vg/ubuntu-lv
 
@@ -92,3 +92,10 @@ docker container start 2e439fce6910
 kubectl describe svc prometheus
 kubectl get pods --namespace=prometheus-wpghr
 kubectl port-forward prometheus-wpghr-server-6bfdbc7bb7-6x7js 8080:9090 -n prometheus-wpghr
+
+
+#########Docker system control#########
+#######################################
+$systemctl stop docker
+$systemctl stop docker
+

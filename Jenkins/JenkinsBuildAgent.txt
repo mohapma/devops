@@ -69,5 +69,18 @@ su - jenkins
 export JAVA_HOME=/opt/java/openjdk
 export PATH=/opt/java/openjdk/bin:$PATH
 
-## nodejs-10.15.1-dind_0
-docker run -d --privileged --name nodejs10 dev-docker-registry.tecnotree.com/common/jenkins-node-nodejs:nodejs-10.15.1-dind_0
+####### manuall build nodejs##############
+###########################################
+Step-1:-
+$docker run -d --privileged --name nodejs10 dev-docker-registry.tecnotree.com/common/jenkins-node-nodejs:nodejs-10.15.1-dind_0
+
+Step-2:-
+$docker inspect nodejs10
+
+Step-3:-
+$ssh jenkins@172.17.0.3 (jenkins)
+
+Step-4:-
+$git clone https://git.tecnotree.com/telefonica/telefonica-peru/ussd-supercharge-restapi.git -b feature
+$cd ussd-supercharge-restapi
+$npm install

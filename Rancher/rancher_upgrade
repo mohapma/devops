@@ -1,0 +1,12 @@
+Before the Rancher update 2.2.9 procedure, we need to enabled the image caching for Docker hub images. The procedure for that is:
+
+1.	Change config of caching proxy to support the Docker Hub caching.
+
+2.	Start downloading the rancher update images to cache. 1h (that time is not 100% clear since depends on many things). The following steps can be done in parallel.
+
+./rancher2.2.9pull.sh
+
+3.	Cordon the cluster VMs on the Rancher UI. That will freeze the pod scheduling (containers will not move to different VMs during the maintenance window). : 1 mins
+4.	Restart one by one the docker on all cluster VMs (systemctl restart docker). That will have service impact. After each VM, ensure the Elastic data instance are back to green. Estimate 5 mins per node => 1hrs for the whole step.
+5.	Do the same for Rancher servers and K8s etcd+control plane nodes. Rancher server nodes to be done last. 
+Wait until the step 2 is completed, cluster status is green and all services are up.

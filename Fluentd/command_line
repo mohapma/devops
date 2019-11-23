@@ -1,0 +1,54 @@
+########Fluentd Config File Syntax###########
+##########################################
+
+/fluentd/etc/fluent.conf  --> If you're using the Docker container
+
+###To mount a config file from outside of Docker, use a bind-mount.
+docker run -ti --rm -v /path/to/dir:/fluentd/etc fluentd -c /fluentd/etc/<conf-file> -v
+
+#####List of Directives######
+
+The configuration file consists of the following directives:
+#source directives -->determine the input sources.
+#match directives -->determine the output destinations.
+#filter directives -->determine the event processing pipelines.
+#system directives -->set system wide configuration.
+#label directives -->group the output and filter for internal routing
+@include directives -->include other files.
+
+######Command Line Option######
+##############################
+
+Usage: fluentd [options]
+    -s, --setup [DIR=/etc/fluent]    install sample configuration file to the directory
+    -c, --config PATH                config file path (default: /etc/fluent/fluent.conf)
+        --dry-run                    Check fluentd setup is correct or not
+        --show-plugin-config=PLUGIN  Show PLUGIN configuration and exit(ex: input:dummy)
+    -p, --plugin DIR                 add plugin directory
+    -I PATH                          add library path
+    -r NAME                          load library
+    -d, --daemon PIDFILE             daemonize fluent process
+        --under-supervisor           run fluent worker under supervisor (this option is NOT for users)
+        --no-supervisor              run fluent worker without supervisor
+        --workers NUM                specify the number of workers under supervisor
+        --user USER                  change user
+        --group GROUP                change group
+    -o, --log PATH                   log file path
+        --log-rotate-age AGE         generations to keep rotated log files
+        --log-rotate-size BYTES      sets the byte size to rotate log files
+        --log-event-verbose          enable log events during process startup/shutdown
+    -i CONFIG_STRING,                inline config which is appended to the config file on-the-fly
+        --inline-config
+        --emit-error-log-interval SECONDS
+                                     suppress interval seconds of emit error logs
+        --suppress-repeated-stacktrace [VALUE]
+                                     suppress repeated stacktrace
+        --without-source             invoke a fluentd without input plugins
+        --use-v1-config              Use v1 configuration format (default)
+        --use-v0-config              Use v0 configuration format
+    -v, --verbose                    increase verbose level (-v: debug, -vv: trace)
+    -q, --quiet                      decrease verbose level (-q: warn, -qq: error)
+        --suppress-config-dump       suppress config dumping when fluentd starts
+    -g, --gemfile GEMFILE            Gemfile path
+    -G, --gem-path GEM_INSTALL_PATH  Gemfile install path (default: $(dirname $gemfile)/vendor/bundle)
+
